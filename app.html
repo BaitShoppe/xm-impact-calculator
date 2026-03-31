@@ -644,27 +644,53 @@ const SERIES=["#D4FE08","#00F0FF","#5A6EF8","#6BF67A","#FFA03C","#FF6B9D"];
 const C={lime:"#D4FE08",cyan:"#00F0FF",periwinkle:"#5A6EF8",green:"#6BF67A",orange:"#FFA03C",red:"#FF6B6B"};
 
 // ─── Data ────────────────────────────────────────────────────
-let events=[
-  {id:"1",name:"Summer Brand Activation NYC",type:"Live Event / Activation",date:"2025-07-15",location:"New York, NY",spend:85000,
-   s1:{impressions:5000,attendance:980,engagement:320},
-   s2:{orgImp:120000,orgEng:8500,infImp:330000,infEng:22000},
-   s3:{platforms:["instagram","tiktok"],data:{instagram:{pieces:12,impressions:85000,cpm:7},tiktok:{pieces:8,impressions:210000,cpm:4}}},
-   s4:{direct:12000,online:8500,leads:32000,sponsor:15000,sampling:4200},
-   s5:{vertical:"Beauty & Personal Care",acv:400,intent:10,conv:25}},
-  {id:"2",name:"Tech Expo Chicago",type:"Trade Show / Expo",date:"2025-09-22",location:"Chicago, IL",spend:52000,
-   s1:{impressions:3000,attendance:580,engagement:210},
-   s2:{orgImp:45000,orgEng:3200,infImp:0,infEng:0},
-   s3:{platforms:["linkedin","x"],data:{linkedin:{pieces:6,impressions:28000,cpm:13},x:{pieces:10,impressions:15000,cpm:3}}},
-   s4:{direct:8500,online:5200,leads:54000,sponsor:20000,sampling:0},
-   s5:{vertical:"Consumer Electronics",acv:900,intent:10,conv:25}},
-  {id:"3",name:"West Coast Pop-Up Tour",type:"Brand Tour / Roadshow",date:"2025-11-05",location:"Los Angeles, CA",spend:145000,
-   s1:{impressions:8000,attendance:1850,engagement:620},
-   s2:{orgImp:310000,orgEng:22000,infImp:510000,infEng:41000},
-   s3:{platforms:["instagram","tiktok","youtube"],data:{instagram:{pieces:24,impressions:185000,cpm:7},tiktok:{pieces:18,impressions:420000,cpm:4},youtube:{pieces:4,impressions:95000,cpm:8}}},
-   s4:{direct:18000,online:14500,leads:78000,sponsor:35000,sampling:9800},
-   s5:{vertical:"Fashion & Apparel",acv:600,intent:10,conv:25}},
-];
+let events=[];
 let editingId=null,activePlatforms=[],selectedEvents=[],dashChart=null,cmpChart=null;
+
+// ─── Supabase event helpers ───────────────────────────────────
+async function loadEvents(){
+  if(!_currentUser) return;
+  const {data,error}=await _sb.from('events').select('*').eq('user_id',_currentUser.id).order('created_at',{ascending:false});
+  if(error){console.error('load events error',error);return;}
+  events=(data||[]).map(row=>({
+    id:row.id,
+    name:row.name,
+    type:row.type||'Live Event / Activation',
+    date:row.date||'',
+    location:row.location||'',
+    spend:row.spend||0,
+    s1:row.s1||{impressions:0,attendance:0,engagement:0},
+    s2:row.s2||{orgImp:0,orgEng:0,infImp:0,infEng:0},
+    s3:row.s3||{platforms:[],data:{}},
+    s4:row.s4||{direct:0,online:0,leads:0,sponsor:0,sampling:0},
+    s5:row.s5||{vertical:'Health & Wellness',acv:500,intent:10,conv:25},
+  }));
+  renderDashboard();
+}
+
+async function saveEventToDb(event){
+  const row={
+    id:event.id,
+    user_id:_currentUser.id,
+    name:event.name,
+    type:event.type,
+    date:event.date,
+    location:event.location,
+    spend:event.spend,
+    s1:event.s1,
+    s2:event.s2,
+    s3:event.s3,
+    s4:event.s4,
+    s5:event.s5,
+  };
+  const {error}=await _sb.from('events').upsert(row);
+  if(error) console.error('save error',error);
+}
+
+async function deleteEventFromDb(id){
+  const {error}=await _sb.from('events').delete().eq('id',id).eq('user_id',_currentUser.id);
+  if(error) console.error('delete error',error);
+}
 
 // ─── Formatters ───────────────────────────────────────────────
 const fmt$=n=>"$"+Math.round(Math.abs(n)).toLocaleString("en-US");
@@ -845,7 +871,7 @@ function saveEvent(){
     s3data[pid]={pieces:n(document.getElementById('pp-'+pid)?.value),impressions:n(document.getElementById('pi-'+pid)?.value),cpm:n(document.getElementById('pc-'+pid)?.value)||PLATFORMS.find(p=>p.id===pid).cpm};
   });
   const event={
-    id:editingId||Date.now().toString(),name,
+    id:editingId||crypto.randomUUID(),name,
     type:document.getElementById('f-type').value,
     date:document.getElementById('f-date').value,
     location:document.getElementById('f-location').value,
@@ -857,10 +883,11 @@ function saveEvent(){
     s5:{vertical:document.getElementById('s5-vertical').value,acv:n(document.getElementById('s5-acv').value),intent:n(document.getElementById('s5-intent').value),conv:n(document.getElementById('s5-conv').value)},
   };
   events=editingId?events.map(e=>e.id===editingId?event:e):[...events,event];
+  await saveEventToDb(event);
   showView('dashboard');
 }
 
-function deleteEvent(id){if(confirm('Delete this event?')){events=events.filter(e=>e.id!==id);renderDashboard();}}
+function deleteEvent(id){if(confirm('Delete this event?')){events=events.filter(e=>e.id!==id);deleteEventFromDb(id);renderDashboard();}}
 
 function toggleAcc(n){
   const body=document.getElementById('acc-body-'+n);
@@ -1227,6 +1254,9 @@ _sb.auth.getSession().then(async ({data})=>{
   _currentUser=data.session.user;
   const el=document.getElementById('nav-user-email');
   if(el) el.textContent=_currentUser.email;
+
+  // Load this user's events from Supabase
+  await loadEvents();
 
   // Check if admin
   const {data:profile}=await _sb.from('profiles').select('role').eq('id',_currentUser.id).single();
