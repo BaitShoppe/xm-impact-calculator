@@ -862,7 +862,7 @@ function renderPlatformInputs(existingData){
   document.getElementById('s3-total-row').style.display='flex';
 }
 
-function saveEvent(){
+async function saveEvent(){
   const name=document.getElementById('f-name').value.trim();
   if(!name)return alert('Please enter an event name.');
   const n=v=>parseFloat(v)||0;
