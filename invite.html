@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XM Impact Calculator — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:#0E1128;color:#E8EAFF;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.wrap{width:100%;max-width:400px;padding:24px;}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:40px;justify-content:center;}
+.logo-text{font-family:'IBM Plex Serif',serif;font-size:18px;color:#fff;font-style:italic;}
+.logo-sub{font-size:11px;color:#5C6490;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.card{background:#1A1F3B;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:32px;}
+h1{font-size:22px;font-weight:600;margin-bottom:6px;color:#fff;}
+.sub{font-size:13px;color:#9BA3CC;margin-bottom:28px;line-height:1.6;}
+label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#5C6490;display:block;margin-bottom:5px;}
+input{width:100%;background:#242A4A;border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#E8EAFF;font-size:14px;padding:10px 12px;outline:none;font-family:inherit;margin-bottom:16px;}
+input:focus{border-color:#D4FE08;}
+input:disabled{opacity:.5;}
+.btn{width:100%;padding:11px;background:#D4FE08;border:none;border-radius:8px;font-size:14px;font-weight:600;color:#0a0f00;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn:hover{background:#bfe000;}
+.btn:disabled{opacity:.5;cursor:default;}
+.err{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.25);border-radius:8px;padding:10px 12px;font-size:13px;color:#FF6B6B;margin-bottom:16px;display:none;}
+.ok{background:rgba(212,254,8,.1);border:1px solid rgba(212,254,8,.25);border-radius:8px;padding:10px 12px;font-size:13px;color:#D4FE08;margin-bottom:16px;display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+      <circle cx="27" cy="9" r="2.5" stroke="#D4FE08" stroke-width="1.8" fill="none"/>
+      <line x1="27" y1="11.5" x2="27" y2="20" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M27 20 Q27 30 18 30 Q11 30 11 23" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M11 23 Q11 17 16 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M13 19 L10 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="logo-text">The Bait Shoppe</div>
+      <div class="logo-sub">XM Impact Calculator</div>
+    </div>
+  </div>
+  <div class="card">
+    <h1>Create your account</h1>
+    <div class="sub" id="invite-sub">You've been invited to The Bait Shoppe XM Impact Calculator.</div>
+    <div class="err" id="err"></div>
+    <div class="ok" id="ok"></div>
+    <div id="form">
+      <label>Email</label>
+      <input id="email" type="email" placeholder="you@company.com"/>
+      <label>Company name</label>
+      <input id="company" type="text" placeholder="Your company name"/>
+      <label>Password</label>
+      <input id="password" type="password" placeholder="Choose a strong password"/>
+      <label>Confirm password</label>
+      <input id="password2" type="password" placeholder="Repeat your password"/>
+      <button class="btn" id="signupBtn" onclick="signup()">Create account</button>
+    </div>
+  </div>
+</div>
+<script>
+const SUPABASE_URL='https://ganptzcehustvhunthht.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbnB0emNlaHVzdHZodW50aGh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzU0NTQsImV4cCI6MjA5MDU1MTQ1NH0.DqEj2uyeYt4UwcCQU_Hoqo9VKrWIvqswfAPxndJy9xA';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+// Get token from URL
+const token=new URLSearchParams(window.location.search).get('token');
+let inviteEmail='';
+
+// Validate token on load
+async function init(){
+  if(!token){
+    document.getElementById('err').textContent='Invalid invite link.';
+    document.getElementById('err').style.display='block';
+    document.getElementById('form').style.display='none';
+    return;
+  }
+  const {data,error}=await sb.from('invites').select('*').eq('token',token).single();
+  if(error||!data){
+    document.getElementById('err').textContent='This invite link is invalid or has expired.';
+    document.getElementById('err').style.display='block';
+    document.getElementById('form').style.display='none';
+    return;
+  }
+  if(data.used){
+    document.getElementById('err').textContent='This invite link has already been used.';
+    document.getElementById('err').style.display='block';
+    document.getElementById('form').style.display='none';
+    return;
+  }
+  inviteEmail=data.email;
+  document.getElementById('email').value=inviteEmail;
+  document.getElementById('email').disabled=true;
+  document.getElementById('invite-sub').textContent=`You've been invited to join. Complete your account setup below.`;
+}
+
+async function signup(){
+  const email=document.getElementById('email').value.trim();
+  const company=document.getElementById('company').value.trim();
+  const password=document.getElementById('password').value;
+  const password2=document.getElementById('password2').value;
+  const btn=document.getElementById('signupBtn');
+  const err=document.getElementById('err');
+  const ok=document.getElementById('ok');
+  err.style.display='none';
+  ok.style.display='none';
+  if(!company){err.textContent='Please enter your company name.';err.style.display='block';return;}
+  if(password.length<8){err.textContent='Password must be at least 8 characters.';err.style.display='block';return;}
+  if(password!==password2){err.textContent='Passwords do not match.';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Creating account...';
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error){err.textContent=error.message;err.style.display='block';btn.disabled=false;btn.textContent='Create account';return;}
+  // Update profile with company name
+  await sb.from('profiles').update({company_name:company}).eq('id',data.user.id);
+  // Mark invite as used
+  await sb.from('invites').update({used:true}).eq('token',token);
+  ok.textContent='Account created! Redirecting to login...';
+  ok.style.display='block';
+  document.getElementById('form').style.display='none';
+  setTimeout(()=>window.location.href='/',2000);
+}
+
+init();
+</script>
+</body>
+</html>

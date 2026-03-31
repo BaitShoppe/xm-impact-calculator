@@ -271,7 +271,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
   <button class="nav-btn" onclick="showView('compare')">Compare</button>
   <button class="nav-btn" onclick="showView('report')">Report</button>
   <div class="nav-spacer"></div>
-  <span id="nav-user-email" style="font-size:12px;color:#5C6490;margin-right:12px;"></span><button class="btn btn-sm no-print" onclick="signOut()" style="margin-right:8px;border-color:rgba(255,107,107,.3);color:#FF6B6B;">Sign out</button><button class="btn btn-primary btn-sm no-print" onclick="openCalc(null)">+ New event</button>
+  <span id="nav-user-email" style="font-size:12px;color:#5C6490;margin-right:12px;"></span>
+  <button class="nav-btn no-print" id="clients-nav-btn" onclick="showView('clients')" style="display:none;">Clients</button>
+  <button class="btn btn-sm no-print" onclick="signOut()" style="margin-right:8px;border-color:rgba(255,107,107,.3);color:#FF6B6B;">Sign out</button>
+  <button class="btn btn-primary btn-sm no-print" onclick="openCalc(null)">+ New event</button>
 </nav>
 
 <!-- DASHBOARD -->
@@ -574,7 +577,30 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
   </div>
 </div>
 
-<!-- COMPARE -->
+<!-- CLIENTS (admin only) -->
+<div class="page" id="view-clients">
+  <div class="page-title">Client Management</div>
+  <div class="page-sub">Invite and manage client accounts</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+    <div class="card">
+      <div class="section-label">Invite a new client</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Enter the client's email address to generate a unique invite link. Send them the link and they'll be able to create their own account.</div>
+      <label class="lbl">Client email address</label>
+      <input id="invite-email" type="email" placeholder="client@company.com" style="margin-bottom:12px;"/>
+      <button class="btn btn-primary" style="width:100%;" onclick="generateInvite()">Generate invite link</button>
+      <div id="invite-result" style="display:none;margin-top:14px;padding:12px;background:var(--navy3);border-radius:var(--radius);border:1px solid rgba(212,254,8,.2);">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--lime);margin-bottom:8px;">Invite link generated</div>
+        <div id="invite-link" style="font-size:12px;color:var(--text2);word-break:break-all;margin-bottom:10px;"></div>
+        <button class="btn btn-sm" style="width:100%;" onclick="copyInvite()">Copy link</button>
+      </div>
+      <div id="invite-err" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(255,107,107,.12);border-radius:var(--radius);font-size:13px;color:#FF6B6B;"></div>
+    </div>
+    <div class="card">
+      <div class="section-label">Active clients</div>
+      <div id="clients-list"><div style="font-size:13px;color:var(--text3);padding:8px 0;">Loading clients...</div></div>
+    </div>
+  </div>
+</div>
 <div class="page" id="view-compare">
   <div class="page-title">Event Comparison</div>
   <div class="page-sub">Side-by-side analysis of your campaigns</div>
@@ -1193,15 +1219,86 @@ const _SB_URL='https://ganptzcehustvhunthht.supabase.co';
 const _SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbnB0emNlaHVzdHZodW50aGh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzU0NTQsImV4cCI6MjA5MDU1MTQ1NH0.DqEj2uyeYt4UwcCQU_Hoqo9VKrWIvqswfAPxndJy9xA';
 const _sb=supabase.createClient(_SB_URL,_SB_KEY);
 
-// On load: check session, redirect if not logged in
-_sb.auth.getSession().then(({data})=>{
+let _currentUser=null;
+let _isAdmin=false;
+
+_sb.auth.getSession().then(async ({data})=>{
   if(!data.session){ window.location.href='/'; return; }
-  window.currentUser=data.session.user;
+  _currentUser=data.session.user;
   const el=document.getElementById('nav-user-email');
-  if(el) el.textContent=data.session.user.email;
+  if(el) el.textContent=_currentUser.email;
+
+  // Check if admin
+  const {data:profile}=await _sb.from('profiles').select('role').eq('id',_currentUser.id).single();
+  if(profile&&profile.role==='admin'){
+    _isAdmin=true;
+    const clientsBtn=document.getElementById('clients-nav-btn');
+    if(clientsBtn) clientsBtn.style.display='block';
+    loadClients();
+  }
 });
 
 function signOut(){
   _sb.auth.signOut().then(()=>{ window.location.href='/'; });
+}
+
+// Override showView to handle clients tab
+const _origShowView=window.showView;
+window.showView=function(name){
+  if(name==='clients'){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('view-clients').classList.add('active');
+    document.getElementById('clients-nav-btn').classList.add('active');
+    return;
+  }
+  _origShowView(name);
+};
+
+async function generateInvite(){
+  const email=document.getElementById('invite-email').value.trim();
+  const err=document.getElementById('invite-err');
+  const result=document.getElementById('invite-result');
+  err.style.display='none';
+  result.style.display='none';
+  if(!email){err.textContent='Please enter an email address.';err.style.display='block';return;}
+
+  const res=await fetch('/api/invite',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,adminId:_currentUser.id})
+  });
+  const data=await res.json();
+  if(!res.ok){err.textContent=data.error||'Could not generate invite.';err.style.display='block';return;}
+
+  document.getElementById('invite-link').textContent=data.inviteUrl;
+  result.style.display='block';
+  loadClients();
+}
+
+function copyInvite(){
+  const link=document.getElementById('invite-link').textContent;
+  navigator.clipboard.writeText(link);
+  const btn=document.querySelector('#invite-result button');
+  btn.textContent='Copied!';
+  setTimeout(()=>btn.textContent='Copy link',2000);
+}
+
+async function loadClients(){
+  const {data,error}=await _sb.from('profiles').select('*').neq('role','admin').order('created_at',{ascending:false});
+  const list=document.getElementById('clients-list');
+  if(!list)return;
+  if(error||!data||!data.length){
+    list.innerHTML='<div style="font-size:13px;color:var(--text3);padding:8px 0;">No clients yet — invite your first client above.</div>';
+    return;
+  }
+  list.innerHTML=data.map(c=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--white);">${c.company_name||'—'}</div>
+        <div style="font-size:12px;color:var(--text3);">${c.email}</div>
+      </div>
+      <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(212,254,8,.1);color:var(--lime);">Active</span>
+    </div>`).join('');
 }
 </script>
