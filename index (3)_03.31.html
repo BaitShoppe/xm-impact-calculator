@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XM Impact Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --navy:#0E1128;
+  --navy2:#1A1F3B;
+  --navy3:#242A4A;
+  --navy4:#2F3660;
+  --lime:#D4FE08;
+  --lime2:#a8cc00;
+  --cyan:#00F0FF;
+  --periwinkle:#5A6EF8;
+  --white:#FFFFFF;
+  --text:#E8EAFF;
+  --text2:#9BA3CC;
+  --text3:#5C6490;
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+  --radius:8px;
+  --radiusL:12px;
+  --radiusXL:16px;
+  --font:'Outfit',sans-serif;
+  --font-serif:'IBM Plex Serif',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--navy);color:var(--text);font-size:14px;line-height:1.5;}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--navy2);}
+::-webkit-scrollbar-thumb{background:var(--navy4);border-radius:2px;}
+
+/* ─── Nav ─── */
+nav{
+  background:var(--navy2);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;
+  display:flex;align-items:center;gap:4px;
+  position:sticky;top:0;z-index:100;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  margin-right:24px;padding:14px 0;white-space:nowrap;
+}
+.logo-mark{width:36px;height:36px;flex-shrink:0;}
+.logo-text{
+  font-family:var(--font-serif);
+  font-size:15px;color:var(--white);letter-spacing:-.01em;
+  font-style:italic;
+}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-top:1px;font-family:var(--font);font-style:normal;}
+.nav-btn{
+  background:none;border:none;border-bottom:2px solid transparent;
+  cursor:pointer;padding:14px 14px;color:var(--text2);
+  font-size:13px;font-weight:500;font-family:var(--font);
+  transition:color .15s;
+}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--lime);border-bottom-color:var(--lime);}
+.nav-spacer{flex:1;}
+
+/* ─── Buttons ─── */
+.btn{
+  padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;
+  border-radius:var(--radius);border:1px solid var(--border2);
+  background:transparent;color:var(--text);font-family:var(--font);
+  transition:all .15s;
+}
+.btn:hover{background:var(--navy3);border-color:var(--border2);}
+.btn-primary{
+  background:var(--lime);border-color:var(--lime);
+  color:#0a0f00;font-weight:600;
+}
+.btn-primary:hover{background:var(--lime2);border-color:var(--lime2);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-danger{color:#ff6b6b;border-color:rgba(255,107,107,.25);}
+.btn-danger:hover{background:rgba(255,107,107,.1);}
+
+/* ─── Layout ─── */
+.page{max-width:1200px;margin:0 auto;padding:28px;display:none;}
+.page.active{display:block;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+
+/* ─── Cards ─── */
+.card{
+  background:var(--navy2);
+  border:1px solid var(--border);
+  border-radius:var(--radiusL);
+  padding:1.25rem;
+}
+.metric-box{
+  background:var(--navy3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:.875rem 1rem;
+}
+
+/* ─── Typography ─── */
+.page-title{
+  font-family:var(--font-serif);
+  font-size:26px;color:var(--white);margin-bottom:4px;
+  font-style:italic;
+}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem;}
+.section-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--lime);font-weight:600;margin-bottom:10px;
+}
+.metric-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text3);margin-bottom:4px;display:block;
+}
+
+/* ─── Forms ─── */
+label.lbl{
+  font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text3);margin-bottom:4px;display:block;
+}
+.hint{font-size:11px;color:var(--text3);margin-bottom:5px;}
+input,select{
+  width:100%;font-size:13px;padding:8px 11px;
+  background:var(--navy3);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  color:var(--text);outline:none;font-family:var(--font);
+  transition:border-color .15s;
+  -webkit-appearance:none;
+}
+input:focus,select:focus{border-color:var(--lime);box-shadow:0 0 0 2px rgba(212,254,8,.12);}
+input[readonly]{opacity:.5;cursor:default;}
+select option{background:var(--navy3);color:var(--text);}
+.prefix-wrap{position:relative;}
+.prefix-wrap .pfx{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  font-size:13px;color:var(--text3);
+}
+.prefix-wrap input{padding-left:22px;}
+
+/* ─── Tags ─── */
+.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:var(--radius);display:inline-block;}
+.tag-live{background:rgba(212,254,8,.15);color:var(--lime);}
+.tag-popup{background:rgba(90,110,248,.2);color:#8B9BFF;}
+.tag-trade{background:rgba(0,240,255,.12);color:var(--cyan);}
+.tag-tour{background:rgba(255,160,60,.12);color:#FFA03C;}
+
+/* ─── Accordion ─── */
+.acc-header{
+  width:100%;background:none;border:none;cursor:pointer;
+  padding:0;font-family:var(--font);text-align:left;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.acc-num{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:11px;font-weight:600;
+  background:var(--navy3);border:1px solid var(--border2);color:var(--text2);
+  transition:all .2s;
+}
+.acc-num.open{background:var(--lime);border-color:var(--lime);color:#0a0f00;}
+.acc-body{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:none;}
+.acc-body.open{display:block;}
+.acc-arrow{font-size:16px;color:var(--text3);transition:transform .2s;display:inline-block;}
+.acc-arrow.open{transform:rotate(180deg);}
+
+/* ─── Platform toggles ─── */
+.plat-btn{
+  padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:var(--radius);font-family:var(--font);
+  background:var(--navy3);border:1px solid var(--border2);
+  color:var(--text2);margin:0 6px 6px 0;transition:all .15s;
+}
+.plat-btn:hover{border-color:var(--border2);color:var(--text);}
+.plat-btn.active{background:rgba(212,254,8,.12);border-color:var(--lime);color:var(--lime);}
+
+/* ─── Table ─── */
+table{width:100%;border-collapse:collapse;}
+th{
+  padding:10px 14px;text-align:left;
+  font-size:10px;color:var(--text3);font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;
+  background:var(--navy3);
+}
+th.right,td.right{text-align:right;}
+td{padding:9px 14px;font-size:13px;border-top:1px solid var(--border);}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+
+/* ─── Misc ─── */
+.info-banner{
+  padding:10px 12px;
+  background:rgba(90,110,248,.12);
+  border:1px solid rgba(90,110,248,.25);
+  border-radius:var(--radius);font-size:12px;color:#8B9BFF;
+}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+.add-card{
+  border:1px dashed var(--border2);background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;min-height:180px;border-radius:var(--radiusL);
+  transition:background .15s;
+}
+.add-card:hover{background:var(--navy3);}
+.totals-row{
+  display:flex;justify-content:space-between;
+  padding:10px 12px;background:var(--navy3);border-radius:var(--radius);margin-top:10px;
+}
+hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.calc-layout{display:grid;grid-template-columns:1fr 288px;gap:16px;align-items:start;}
+.sidebar-sticky{position:sticky;top:80px;display:flex;flex-direction:column;gap:10px;}
+.metric-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);}
+.metric-row:last-child{border-bottom:none;}
+.funnel-bg{background:var(--border);border-radius:3px;height:6px;overflow:hidden;}
+.funnel-fill{height:100%;border-radius:3px;}
+.chart-wrap{position:relative;width:100%;}
+.lime-val{color:var(--lime);}
+.cyan-val{color:var(--cyan);}
+.periwinkle-val{color:var(--periwinkle);}
+.green-val{color:#6BF67A;}
+.cmp-toggle{
+  font-size:12px;font-weight:500;cursor:pointer;
+  border-radius:0 var(--radius) var(--radius) 0;
+  font-family:var(--font);
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text2);padding:6px 14px;
+}
+.cmp-toggle.active{background:var(--navy3);color:var(--text);}
+
+/* ─── Lime accent line ─── */
+.lime-bar{height:3px;background:var(--lime);border-radius:2px;margin-bottom:1.5rem;}
+
+@media(max-width:900px){
+  .calc-layout{grid-template-columns:1fr;}
+  .sidebar-sticky{position:static;}
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+}
+@media print{nav,.no-print{display:none!important;}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <!-- Bait Shoppe fishhook -->
+    <svg class="logo-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Eye: small open ring at top right -->
+      <circle cx="27" cy="9" r="2.5" stroke="#D4FE08" stroke-width="1.8" fill="none"/>
+      <!-- Shank: straight down from eye -->
+      <line x1="27" y1="11.5" x2="27" y2="20" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/>
+      <!-- Bend: curves around the bottom -->
+      <path d="M27 20 Q27 30 18 30 Q11 30 11 23" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <!-- Point: rises back up from the bend -->
+      <path d="M11 23 Q11 17 16 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <!-- Barb: small spike off the point -->
+      <path d="M13 19 L10 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="logo-text">The Bait Shoppe</div>
+      <div class="logo-sub">XM Impact Calculator</div>
+    </div>
+  </div>
+  <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="showView('compare')">Compare</button>
+  <button class="nav-btn" onclick="showView('report')">Report</button>
+  <div class="nav-spacer"></div>
+  <button class="btn btn-primary btn-sm no-print" onclick="openCalc(null)">+ New event</button>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="page active" id="view-dashboard">
+  <div class="page-title">Campaign Dashboard</div>
+  <div class="page-sub">Experiential marketing ROI overview</div>
+  <div class="grid-4" id="dash-kpis" style="margin-bottom:1.5rem;"></div>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Value breakdown by campaign</h3>
+    <div id="dash-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--text2);"></div>
+    <div class="chart-wrap" style="height:200px;"><canvas id="dash-chart"></canvas></div>
+  </div>
+  <div class="event-grid" id="event-cards"></div>
+</div>
+
+<!-- CALCULATOR -->
+<div class="page" id="view-calculator">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+    <div>
+      <div class="page-title" id="calc-title">New Event</div>
+      <div class="page-sub">Fill in what you have — all sections are optional</div>
+    </div>
+    <div style="display:flex;gap:8px;" class="no-print">
+      <button class="btn" onclick="showView('dashboard')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save event</button>
+    </div>
+  </div>
+  <div class="calc-layout">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <!-- Event details -->
+      <div class="card">
+        <div class="section-label">Event details</div>
+        <div class="grid-2" style="gap:10px;">
+          <div style="grid-column:span 2;">
+            <label class="lbl">Event name *</label>
+            <input id="f-name" type="text" placeholder="e.g. Summer Brand Activation NYC" oninput="updateSidebar()"/>
+          </div>
+          <div>
+            <label class="lbl">Event type</label>
+            <select id="f-type">
+              <option>Live Event / Activation</option>
+              <option>Pop-up Experience</option>
+              <option>Trade Show / Expo</option>
+              <option>Brand Tour / Roadshow</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Date</label>
+            <input id="f-date" type="date"/>
+          </div>
+          <div style="grid-column:span 2;">
+            <label class="lbl">Location</label>
+            <input id="f-location" type="text" placeholder="City, State"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activation Spend -->
+      <div class="card" style="border-color:rgba(212,254,8,.25);">
+        <div class="section-label">Activation spend</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Enter your total investment for this activation. This is the denominator in your impact ratio — the goal is to reach 1:1 or better.</div>
+        <div class="grid-2" style="gap:10px;">
+          <div>
+            <label class="lbl">Total activation spend *</label>
+            <div class="prefix-wrap"><span class="pfx">$</span><input id="f-spend" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <div id="spend-ratio-box" style="width:100%;padding:10px 12px;background:var(--navy3);border-radius:var(--radius);border:1px solid var(--border);text-align:center;display:none;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:4px;">Impact ratio</div>
+              <div id="spend-ratio" style="font-size:26px;font-weight:700;line-height:1;"></div>
+              <div id="spend-ratio-label" style="font-size:11px;margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 1 -->
+      <div class="card">
+        <button class="acc-header" onclick="toggleAcc(1)">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="acc-num open" id="acc-num-1">1</div>
+            <span style="font-size:14px;font-weight:600;color:var(--white);">Activation Value</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span id="acc-val-1" style="font-size:13px;font-weight:600;color:var(--lime);display:none;"></span>
+            <span class="acc-arrow open" id="acc-arrow-1">⌄</span>
+          </div>
+        </button>
+        <div class="acc-body open" id="acc-body-1">
+          <div class="grid-3">
+            <div>
+              <label class="lbl">Impressions</label>
+              <div class="hint">Total people at the event</div>
+              <input id="s1-impressions" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
+            <div>
+              <label class="lbl">Attendance</label>
+              <div class="hint">People who visited your activation</div>
+              <input id="s1-attendance" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
+            <div>
+              <label class="lbl">Engagement</label>
+              <div class="hint">Visitors with 4+ min dwell time</div>
+              <input id="s1-engagement" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="card">
+        <button class="acc-header" onclick="toggleAcc(2)">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="acc-num" id="acc-num-2">2</div>
+            <span style="font-size:14px;font-weight:600;color:var(--white);">Media + Data Collection Value</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="acc-arrow" id="acc-arrow-2">⌄</span>
+          </div>
+        </button>
+        <div class="acc-body" id="acc-body-2">
+          <div class="grid-2">
+            <div><label class="lbl">Organic social impressions</label><input id="s2-orgImp" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            <div><label class="lbl">Organic social engagements</label><input id="s2-orgEng" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            <div><label class="lbl">Influencer social impressions</label><input id="s2-infImp" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            <div><label class="lbl">Influencer social engagements</label><input id="s2-infEng" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            <div style="grid-column:span 2;" class="info-banner">Social API integrations (Meta, TikTok, LinkedIn, X) coming in Phase 2 — enter data manually for now.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="card">
+        <button class="acc-header" onclick="toggleAcc(3)">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="acc-num" id="acc-num-3">3</div>
+            <span style="font-size:14px;font-weight:600;color:var(--white);">Content Value</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span id="acc-val-3" style="font-size:13px;font-weight:600;color:var(--lime);display:none;"></span>
+            <span class="acc-arrow" id="acc-arrow-3">⌄</span>
+          </div>
+        </button>
+        <div class="acc-body" id="acc-body-3">
+          <div class="section-label">Select platforms used</div>
+          <div id="platform-toggles" style="margin-bottom:14px;"></div>
+          <div id="platform-inputs"></div>
+          <div id="s3-total-row" class="totals-row" style="display:none;">
+            <span style="font-size:12px;color:var(--text2);">Total Content EMV</span>
+            <span id="s3-total" style="font-size:13px;font-weight:600;color:var(--lime);"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="card">
+        <button class="acc-header" onclick="toggleAcc(4)">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="acc-num" id="acc-num-4">4</div>
+            <span style="font-size:14px;font-weight:600;color:var(--white);">Net Revenue</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span id="acc-val-4" style="font-size:13px;font-weight:600;color:var(--lime);display:none;"></span>
+            <span class="acc-arrow" id="acc-arrow-4">⌄</span>
+          </div>
+        </button>
+        <div class="acc-body" id="acc-body-4">
+          <div class="grid-2">
+            <div><label class="lbl">Direct sales at event</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-direct" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
+            <div><label class="lbl">Online sales attributed to event</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-online" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
+            <div><label class="lbl">Leads converted post-event</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-leads" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
+            <div><label class="lbl">Sponsorship / partnership revenue</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-sponsor" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
+            <div style="grid-column:span 2;"><label class="lbl">Product sampling / trial conversions</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-sampling" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
+          </div>
+          <div class="totals-row" style="margin-top:12px;">
+            <span style="font-size:12px;color:var(--text2);">Total Net Revenue</span>
+            <span id="s4-total" style="font-size:13px;font-weight:600;color:var(--lime);">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5 -->
+      <div class="card">
+        <button class="acc-header" onclick="toggleAcc(5)">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="acc-num" id="acc-num-5">5</div>
+            <span style="font-size:14px;font-weight:600;color:var(--white);">Purchase Intent Value Estimate</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span id="acc-val-5" style="font-size:13px;font-weight:600;color:var(--lime);display:none;"></span>
+            <span class="acc-arrow" id="acc-arrow-5">⌄</span>
+          </div>
+        </button>
+        <div class="acc-body" id="acc-body-5">
+          <div class="info-banner" style="margin-bottom:14px;">
+            Formula: <strong>Activation attendance × purchase intent % × conversion rate % × annual consumer value</strong>
+          </div>
+          <div class="grid-2">
+            <div style="grid-column:span 2;">
+              <label class="lbl">Industry vertical</label>
+              <select id="s5-vertical" onchange="setVertical()">
+                <option data-acv="250">CPG / Food &amp; Beverage</option>
+                <option data-acv="400">Beauty &amp; Personal Care</option>
+                <option data-acv="600">Fashion &amp; Apparel</option>
+                <option data-acv="900">Consumer Electronics</option>
+                <option data-acv="3500">Automotive</option>
+                <option data-acv="1200">Financial Services</option>
+                <option data-acv="500" selected>Health &amp; Wellness</option>
+                <option data-acv="350">Retail (General)</option>
+                <option data-acv="300">Alcohol &amp; Spirits</option>
+                <option data-acv="2500">Luxury Goods</option>
+                <option data-acv="500">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Activation attendance</label>
+              <div class="hint">Auto-filled from Section 1</div>
+              <input id="s5-attendance" type="number" readonly/>
+            </div>
+            <div>
+              <label class="lbl">Annual consumer value ($)</label>
+              <div class="hint" id="s5-acv-hint">Default for Health &amp; Wellness</div>
+              <div class="prefix-wrap"><span class="pfx">$</span><input id="s5-acv" type="number" value="500" oninput="updateSidebar()"/></div>
+            </div>
+            <div>
+              <label class="lbl">Purchase intent rate (%)</label>
+              <div class="hint">Default: 10% — override if needed</div>
+              <input id="s5-intent" type="number" value="10" oninput="updateSidebar()"/>
+            </div>
+            <div>
+              <label class="lbl">Conversion rate (%)</label>
+              <div class="hint">Default: 25% — override if needed</div>
+              <input id="s5-conv" type="number" value="25" oninput="updateSidebar()"/>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:14px;background:var(--navy3);border-radius:var(--radius);">
+            <div class="hint" style="margin-bottom:6px;">Calculation breakdown</div>
+            <div id="s5-formula" style="font-size:12px;color:var(--text2);line-height:2;"></div>
+            <hr class="divider"/>
+            <div class="totals-row" style="margin-top:0;background:transparent;padding:0;">
+              <span style="font-size:12px;color:var(--text2);">Purchase intent value estimate</span>
+              <span id="s5-total" style="font-size:13px;font-weight:600;color:var(--lime);">$0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar-sticky">
+      <div class="card" style="border-color:rgba(212,254,8,.2);">
+        <div class="section-label">Total event value</div>
+        <div id="sb-total" style="font-size:38px;font-weight:700;color:var(--lime);line-height:1;margin-bottom:4px;font-family:var(--font);">$0</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:16px;">estimated value generated</div>
+        <div id="sb-rows"></div>
+      </div>
+      <!-- Impact ratio card -->
+      <div class="card" id="sb-ratio-card" style="display:none;border-color:rgba(212,254,8,.2);">
+        <div class="section-label">Impact ratio</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:4px;">
+          <div id="sb-ratio-val" style="font-size:38px;font-weight:700;line-height:1;"></div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:6px;">: 1</div>
+        </div>
+        <div id="sb-ratio-label" style="font-size:12px;margin-bottom:14px;"></div>
+        <div style="background:var(--navy3);border-radius:6px;height:8px;overflow:hidden;margin-bottom:8px;">
+          <div id="sb-ratio-bar" style="height:100%;border-radius:6px;transition:width .5s ease;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
+          <span>$0</span><span style="color:var(--lime);">1:1 target</span><span>2:1+</span>
+        </div>
+        <hr class="divider"/>
+        <div class="metric-row">
+          <span style="font-size:12px;color:var(--text2);">Total value</span>
+          <span id="sb-ratio-total" style="font-size:12px;font-weight:600;color:var(--lime);"></span>
+        </div>
+        <div class="metric-row">
+          <span style="font-size:12px;color:var(--text2);">Activation spend</span>
+          <span id="sb-ratio-spend" style="font-size:12px;font-weight:600;color:var(--text);"></span>
+        </div>
+        <hr class="divider"/>
+        <button class="btn btn-primary" style="width:100%;margin-top:2px;" onclick="getRecommendations()">
+          ✦ Get AI recommendations
+        </button>
+      </div>
+      <!-- AI Recommendations card -->
+      <div class="card" id="sb-ai-card" style="display:none;border-color:rgba(90,110,248,.3);">
+        <div class="section-label" style="color:var(--periwinkle);">AI recommendations</div>
+        <div id="sb-ai-content"></div>
+      </div>
+      <div class="card" id="sb-s1-card" style="display:none;">
+        <div class="section-label">Activation snapshot</div>
+        <div id="sb-s1-rows"></div>
+      </div>
+      <div class="card" id="sb-s2-card" style="display:none;">
+        <div class="section-label">Media snapshot</div>
+        <div id="sb-s2-rows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div class="page" id="view-compare">
+  <div class="page-title">Event Comparison</div>
+  <div class="page-sub">Side-by-side analysis of your campaigns</div>
+  <div id="cmp-toggles" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;"></div>
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Value comparison</h3>
+    <div id="cmp-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--text2);"></div>
+    <div class="chart-wrap" style="height:200px;"><canvas id="cmp-chart"></canvas></div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table id="cmp-table"><thead></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div class="page" id="view-report">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;" class="no-print">
+    <div>
+      <div class="page-title">Event Report</div>
+      <div class="page-sub">Full ROI summary &amp; export</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <select id="report-select" onchange="renderReport()" style="width:auto;min-width:200px;"></select>
+      <button class="btn btn-primary" onclick="window.print()">⬇ Export PDF</button>
+    </div>
+  </div>
+  <div id="report-body" class="card"></div>
+</div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────
+const PLATFORMS=[
+  {id:"instagram",label:"Instagram",cpm:7},
+  {id:"tiktok",label:"TikTok",cpm:4},
+  {id:"linkedin",label:"LinkedIn",cpm:13},
+  {id:"x",label:"X (Twitter)",cpm:3},
+  {id:"youtube",label:"YouTube",cpm:8},
+  {id:"facebook",label:"Facebook",cpm:5},
+];
+const SERIES=["#D4FE08","#00F0FF","#5A6EF8","#6BF67A","#FFA03C","#FF6B9D"];
+const C={lime:"#D4FE08",cyan:"#00F0FF",periwinkle:"#5A6EF8",green:"#6BF67A",orange:"#FFA03C",red:"#FF6B6B"};
+
+// ─── Data ────────────────────────────────────────────────────
+let events=[
+  {id:"1",name:"Summer Brand Activation NYC",type:"Live Event / Activation",date:"2025-07-15",location:"New York, NY",spend:85000,
+   s1:{impressions:5000,attendance:980,engagement:320},
+   s2:{orgImp:120000,orgEng:8500,infImp:330000,infEng:22000},
+   s3:{platforms:["instagram","tiktok"],data:{instagram:{pieces:12,impressions:85000,cpm:7},tiktok:{pieces:8,impressions:210000,cpm:4}}},
+   s4:{direct:12000,online:8500,leads:32000,sponsor:15000,sampling:4200},
+   s5:{vertical:"Beauty & Personal Care",acv:400,intent:10,conv:25}},
+  {id:"2",name:"Tech Expo Chicago",type:"Trade Show / Expo",date:"2025-09-22",location:"Chicago, IL",spend:52000,
+   s1:{impressions:3000,attendance:580,engagement:210},
+   s2:{orgImp:45000,orgEng:3200,infImp:0,infEng:0},
+   s3:{platforms:["linkedin","x"],data:{linkedin:{pieces:6,impressions:28000,cpm:13},x:{pieces:10,impressions:15000,cpm:3}}},
+   s4:{direct:8500,online:5200,leads:54000,sponsor:20000,sampling:0},
+   s5:{vertical:"Consumer Electronics",acv:900,intent:10,conv:25}},
+  {id:"3",name:"West Coast Pop-Up Tour",type:"Brand Tour / Roadshow",date:"2025-11-05",location:"Los Angeles, CA",spend:145000,
+   s1:{impressions:8000,attendance:1850,engagement:620},
+   s2:{orgImp:310000,orgEng:22000,infImp:510000,infEng:41000},
+   s3:{platforms:["instagram","tiktok","youtube"],data:{instagram:{pieces:24,impressions:185000,cpm:7},tiktok:{pieces:18,impressions:420000,cpm:4},youtube:{pieces:4,impressions:95000,cpm:8}}},
+   s4:{direct:18000,online:14500,leads:78000,sponsor:35000,sampling:9800},
+   s5:{vertical:"Fashion & Apparel",acv:600,intent:10,conv:25}},
+];
+let editingId=null,activePlatforms=[],selectedEvents=[],dashChart=null,cmpChart=null;
+
+// ─── Formatters ───────────────────────────────────────────────
+const fmt$=n=>"$"+Math.round(Math.abs(n)).toLocaleString("en-US");
+const fmtN=n=>Math.round(n).toLocaleString("en-US");
+const fmtK=n=>n>=1e6?(n/1e6).toFixed(1)+"M":n>=1000?(n/1000).toFixed(0)+"K":String(Math.round(n));
+
+// ─── ROI Calc ─────────────────────────────────────────────────
+function calcEvent(e){
+  const n=v=>parseFloat(v)||0;
+  const s3=(e.s3.platforms||[]).reduce((sum,pid)=>{
+    const d=e.s3.data[pid]||{};
+    return sum+(n(d.impressions)/1000)*n(d.cpm);
+  },0);
+  const s4=n(e.s4.direct)+n(e.s4.online)+n(e.s4.leads)+n(e.s4.sponsor)+n(e.s4.sampling);
+  const s5=n(e.s1.attendance)*(n(e.s5.intent)/100)*(n(e.s5.conv)/100)*n(e.s5.acv);
+  return{s3,s4,s5,total:s3+s4+s5};
+}
+
+// ─── View switching ───────────────────────────────────────────
+function showView(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const names=['dashboard','compare','report'];
+  const idx=names.indexOf(name);
+  if(idx>=0)document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  if(name==='dashboard')renderDashboard();
+  if(name==='compare')renderCompare();
+  if(name==='report')renderReport();
+}
+
+// ─── Dashboard ───────────────────────────────────────────────
+function tagClass(t){
+  return t==='Live Event / Activation'?'tag-live':t==='Pop-up Experience'?'tag-popup':t==='Trade Show / Expo'?'tag-trade':'tag-tour';
+}
+
+function renderDashboard(){
+  const calcs=events.map(e=>({...e,c:calcEvent(e)}));
+  const tv=calcs.reduce((a,e)=>a+e.c.total,0);
+  const tr=calcs.reduce((a,e)=>a+e.c.s4,0);
+  const te=calcs.reduce((a,e)=>a+e.c.s3,0);
+  const tp=calcs.reduce((a,e)=>a+e.c.s5,0);
+
+  document.getElementById('dash-kpis').innerHTML=[
+    {l:"Total value generated",v:fmt$(tv),c:C.lime},
+    {l:"Net revenue",v:fmt$(tr),c:C.green},
+    {l:"Content EMV",v:fmt$(te),c:C.cyan},
+    {l:"Purchase intent est.",v:fmt$(tp),c:C.periwinkle},
+  ].map(k=>`<div class="metric-box"><span class="metric-label">${k.l}</span><div style="font-size:22px;font-weight:700;color:${k.c};margin:4px 0 2px;">${k.v}</div><div style="font-size:11px;color:var(--text3);">${events.length} campaign${events.length!==1?'s':''}</div></div>`).join('');
+
+  document.getElementById('dash-legend').innerHTML=['Revenue','Content EMV','Purchase Intent'].map((l,i)=>`<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:${[C.green,C.cyan,C.periwinkle][i]};display:inline-block;"></span>${l}</span>`).join('');
+
+  if(dashChart)dashChart.destroy();
+  dashChart=new Chart(document.getElementById('dash-chart'),{
+    type:'bar',
+    data:{
+      labels:calcs.map(e=>e.name.length>18?e.name.slice(0,18)+'…':e.name),
+      datasets:[
+        {label:'Revenue',data:calcs.map(e=>Math.round(e.c.s4)),backgroundColor:'#6BF67A',borderRadius:3},
+        {label:'Content EMV',data:calcs.map(e=>Math.round(e.c.s3)),backgroundColor:'#00F0FF',borderRadius:3},
+        {label:'Purchase Intent',data:calcs.map(e=>Math.round(e.c.s5)),backgroundColor:'#5A6EF8',borderRadius:3},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9BA3CC',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{callback:v=>'$'+fmtK(v),color:'#9BA3CC',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+
+  document.getElementById('event-cards').innerHTML=calcs.map(e=>`
+    <div class="card">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--white);">${e.name}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="tag ${tagClass(e.type)}">${e.type}</span>
+          ${e.date?`<span style="font-size:11px;color:var(--text3);">${e.date}</span>`:''}
+          ${e.location?`<span style="font-size:11px;color:var(--text3);">${e.location}</span>`:''}
+        </div>
+      </div>
+      <div class="grid-2" style="gap:8px;margin-bottom:12px;">
+        <div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Total value</div><div style="font-size:13px;font-weight:600;color:${C.lime};">${fmt$(e.c.total)}</div></div>
+        <div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Net revenue</div><div style="font-size:13px;font-weight:600;color:${C.green};">${fmt$(e.c.s4)}</div></div>
+        <div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Content EMV</div><div style="font-size:13px;font-weight:600;color:${C.cyan};">${fmt$(e.c.s3)}</div></div>
+        ${e.spend?`<div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Impact ratio</div><div style="font-size:13px;font-weight:600;color:${e.c.total/e.spend>=1?'#6BF67A':'#FF6B6B'};">${(e.c.total/e.spend).toFixed(2)}:1</div></div>`:`<div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Purchase intent</div><div style="font-size:13px;font-weight:600;color:${C.periwinkle};">${fmt$(e.c.s5)}</div></div>`}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" style="flex:1;" onclick="openCalc('${e.id}')">Edit</button>
+        <button class="btn btn-sm" style="flex:1;" onclick="openReport('${e.id}')">Report</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteEvent('${e.id}')">✕</button>
+      </div>
+    </div>
+  `).join('')+`<div class="add-card" onclick="openCalc(null)"><div style="text-align:center;color:var(--text3);"><div style="font-size:28px;margin-bottom:6px;color:var(--lime);">+</div><div style="font-size:13px;">Add new event</div></div></div>`;
+}
+
+// ─── Calculator ───────────────────────────────────────────────
+function openCalc(id){
+  editingId=id;
+  activePlatforms=[];
+  const e=id?events.find(e=>e.id===id):null;
+  document.getElementById('calc-title').textContent=e?'Edit Event':'New Event';
+  document.getElementById('f-name').value=e?e.name:'';
+  document.getElementById('f-type').value=e?e.type:'Live Event / Activation';
+  document.getElementById('f-date').value=e?e.date:'';
+  document.getElementById('f-location').value=e?e.location:'';
+  document.getElementById('f-spend').value=e?e.spend:'';
+  document.getElementById('s1-impressions').value=e?e.s1.impressions:'';
+  document.getElementById('s1-attendance').value=e?e.s1.attendance:'';
+  document.getElementById('s1-engagement').value=e?e.s1.engagement:'';
+  document.getElementById('s2-orgImp').value=e?e.s2.orgImp:'';
+  document.getElementById('s2-orgEng').value=e?e.s2.orgEng:'';
+  document.getElementById('s2-infImp').value=e?e.s2.infImp:'';
+  document.getElementById('s2-infEng').value=e?e.s2.infEng:'';
+  document.getElementById('s4-direct').value=e?e.s4.direct:'';
+  document.getElementById('s4-online').value=e?e.s4.online:'';
+  document.getElementById('s4-leads').value=e?e.s4.leads:'';
+  document.getElementById('s4-sponsor').value=e?e.s4.sponsor:'';
+  document.getElementById('s4-sampling').value=e?e.s4.sampling:'';
+  const vert=e?e.s5.vertical:'Health & Wellness';
+  document.getElementById('s5-vertical').value=vert;
+  document.getElementById('s5-acv').value=e?e.s5.acv:500;
+  document.getElementById('s5-intent').value=e?e.s5.intent:10;
+  document.getElementById('s5-conv').value=e?e.s5.conv:25;
+  document.getElementById('s5-acv-hint').textContent='Default for '+vert;
+  activePlatforms=e?(e.s3.platforms||[]).slice():[];
+  renderPlatformToggles(e?e.s3.data:{});
+  updateSidebar();
+  showView('calculator');
+}
+
+function renderPlatformToggles(existingData){
+  document.getElementById('platform-toggles').innerHTML=PLATFORMS.map(p=>`<button class="plat-btn${activePlatforms.includes(p.id)?' active':''}" onclick="togglePlatform('${p.id}')">${activePlatforms.includes(p.id)?'✓ ':''}${p.label}</button>`).join('');
+  renderPlatformInputs(existingData||{});
+}
+
+function togglePlatform(pid){
+  const p=PLATFORMS.find(x=>x.id===pid);
+  activePlatforms=activePlatforms.includes(pid)?activePlatforms.filter(x=>x!==pid):[...activePlatforms,pid];
+  document.getElementById('platform-toggles').innerHTML=PLATFORMS.map(p=>`<button class="plat-btn${activePlatforms.includes(p.id)?' active':''}" onclick="togglePlatform('${p.id}')">${activePlatforms.includes(p.id)?'✓ ':''}${p.label}</button>`).join('');
+  renderPlatformInputs({});
+  updateSidebar();
+}
+
+function renderPlatformInputs(existingData){
+  const wrap=document.getElementById('platform-inputs');
+  if(!activePlatforms.length){
+    wrap.innerHTML='<div style="text-align:center;padding:20px 0;font-size:13px;color:var(--text3);">Select one or more platforms above</div>';
+    document.getElementById('s3-total-row').style.display='none';
+    return;
+  }
+  wrap.innerHTML=activePlatforms.map(pid=>{
+    const p=PLATFORMS.find(x=>x.id===pid);
+    const d=existingData[pid]||{pieces:'',impressions:'',cpm:p.cpm};
+    return `<div id="plat-${pid}" style="margin-bottom:10px;padding:12px;background:var(--navy3);border-radius:var(--radius);border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:13px;font-weight:600;color:var(--white);">${p.label}</span>
+        <span id="emv-${pid}" style="font-size:12px;font-weight:600;color:var(--lime);"></span>
+      </div>
+      <div class="grid-3">
+        <div><label class="lbl">Pieces published</label><input id="pp-${pid}" type="number" value="${d.pieces}" placeholder="0" oninput="updateSidebar()"/></div>
+        <div><label class="lbl">Total impressions</label><input id="pi-${pid}" type="number" value="${d.impressions}" placeholder="0" oninput="updateSidebar()"/></div>
+        <div><label class="lbl">CPM ($)</label><div class="hint">Default: $${p.cpm}</div><input id="pc-${pid}" type="number" value="${d.cpm}" placeholder="${p.cpm}" oninput="updateSidebar()"/></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('s3-total-row').style.display='flex';
+}
+
+function saveEvent(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name)return alert('Please enter an event name.');
+  const n=v=>parseFloat(v)||0;
+  const s3data={};
+  activePlatforms.forEach(pid=>{
+    s3data[pid]={pieces:n(document.getElementById('pp-'+pid)?.value),impressions:n(document.getElementById('pi-'+pid)?.value),cpm:n(document.getElementById('pc-'+pid)?.value)||PLATFORMS.find(p=>p.id===pid).cpm};
+  });
+  const event={
+    id:editingId||Date.now().toString(),name,
+    type:document.getElementById('f-type').value,
+    date:document.getElementById('f-date').value,
+    location:document.getElementById('f-location').value,
+    spend:n(document.getElementById('f-spend').value),
+    s1:{impressions:n(document.getElementById('s1-impressions').value),attendance:n(document.getElementById('s1-attendance').value),engagement:n(document.getElementById('s1-engagement').value)},
+    s2:{orgImp:n(document.getElementById('s2-orgImp').value),orgEng:n(document.getElementById('s2-orgEng').value),infImp:n(document.getElementById('s2-infImp').value),infEng:n(document.getElementById('s2-infEng').value)},
+    s3:{platforms:[...activePlatforms],data:s3data},
+    s4:{direct:n(document.getElementById('s4-direct').value),online:n(document.getElementById('s4-online').value),leads:n(document.getElementById('s4-leads').value),sponsor:n(document.getElementById('s4-sponsor').value),sampling:n(document.getElementById('s4-sampling').value)},
+    s5:{vertical:document.getElementById('s5-vertical').value,acv:n(document.getElementById('s5-acv').value),intent:n(document.getElementById('s5-intent').value),conv:n(document.getElementById('s5-conv').value)},
+  };
+  events=editingId?events.map(e=>e.id===editingId?event:e):[...events,event];
+  showView('dashboard');
+}
+
+function deleteEvent(id){if(confirm('Delete this event?')){events=events.filter(e=>e.id!==id);renderDashboard();}}
+
+function toggleAcc(n){
+  const body=document.getElementById('acc-body-'+n);
+  const arrow=document.getElementById('acc-arrow-'+n);
+  const num=document.getElementById('acc-num-'+n);
+  const open=body.classList.toggle('open');
+  arrow.classList.toggle('open',open);
+  num.classList.toggle('open',open);
+}
+
+function setVertical(){
+  const sel=document.getElementById('s5-vertical');
+  const acv=sel.options[sel.selectedIndex].getAttribute('data-acv')||500;
+  document.getElementById('s5-acv').value=acv;
+  document.getElementById('s5-acv-hint').textContent='Default for '+sel.value;
+  updateSidebar();
+}
+
+function updateSidebar(){
+  const n=v=>parseFloat(v)||0;
+  const att=n(document.getElementById('s1-attendance').value);
+  document.getElementById('s5-attendance').value=att;
+
+  let s3=0;
+  activePlatforms.forEach(pid=>{
+    const imp=n(document.getElementById('pi-'+pid)?.value);
+    const cpm=n(document.getElementById('pc-'+pid)?.value)||PLATFORMS.find(p=>p.id===pid).cpm;
+    const emv=(imp/1000)*cpm;
+    s3+=emv;
+    const el=document.getElementById('emv-'+pid);
+    if(el)el.textContent=emv>0?'EMV '+fmt$(emv):'';
+  });
+  const s3el=document.getElementById('s3-total');
+  if(s3el)s3el.textContent=fmt$(s3);
+
+  const s4=n(document.getElementById('s4-direct').value)+n(document.getElementById('s4-online').value)+n(document.getElementById('s4-leads').value)+n(document.getElementById('s4-sponsor').value)+n(document.getElementById('s4-sampling').value);
+  document.getElementById('s4-total').textContent=fmt$(s4);
+
+  const acv=n(document.getElementById('s5-acv').value);
+  const intent=n(document.getElementById('s5-intent').value);
+  const conv=n(document.getElementById('s5-conv').value);
+  const s5=att*(intent/100)*(conv/100)*acv;
+  document.getElementById('s5-total').textContent=fmt$(s5);
+  document.getElementById('s5-formula').textContent=`${fmtN(att)} attendees × ${intent}% intent × ${conv}% conversion × ${fmt$(acv)} ACV`;
+
+  const total=s3+s4+s5;
+  document.getElementById('sb-total').textContent=fmt$(total);
+
+  // ─── Impact ratio ───
+  const spend=n(document.getElementById('f-spend').value);
+  const ratioBox=document.getElementById('spend-ratio-box');
+  const sbRatioCard=document.getElementById('sb-ratio-card');
+  if(spend>0){
+    const ratio=total/spend;
+    const ratioStr=ratio.toFixed(2);
+    const met=ratio>=1;
+    const color=ratio>=1.5?'#D4FE08':ratio>=1?'#6BF67A':'#FF6B6B';
+    const label=ratio>=1.5?'Excellent — well above target':ratio>=1?'On target — 1:1 achieved':'Below target — keep adding value';
+    // inline box
+    ratioBox.style.display='block';
+    document.getElementById('spend-ratio').textContent=ratioStr+':1';
+    document.getElementById('spend-ratio').style.color=color;
+    document.getElementById('spend-ratio-label').textContent=label;
+    document.getElementById('spend-ratio-label').style.color=color;
+    // sidebar card
+    sbRatioCard.style.display='block';
+    document.getElementById('sb-ratio-val').textContent=ratioStr;
+    document.getElementById('sb-ratio-val').style.color=color;
+    document.getElementById('sb-ratio-label').textContent=label;
+    document.getElementById('sb-ratio-label').style.color=color;
+    document.getElementById('sb-ratio-total').textContent=fmt$(total);
+    document.getElementById('sb-ratio-spend').textContent=fmt$(spend);
+    const barW=Math.min(100,ratio/2*100);
+    document.getElementById('sb-ratio-bar').style.width=barW+'%';
+    document.getElementById('sb-ratio-bar').style.background=color;
+  } else {
+    ratioBox.style.display='none';
+    sbRatioCard.style.display='none';
+  }
+
+  [{n:3,v:s3},{n:4,v:s4},{n:5,v:s5}].forEach(x=>{
+    const el=document.getElementById('acc-val-'+x.n);
+    if(el){el.textContent=x.v>0?fmt$(x.v):'';el.style.display=x.v>0?'':'none';}
+  });
+
+  document.getElementById('sb-rows').innerHTML=[
+    {n:1,l:'Activation Value',v:null,note:'value TBD'},
+    {n:2,l:'Media + Data Value',v:null,note:'value TBD'},
+    {n:3,l:'Content EMV',v:s3},
+    {n:4,l:'Net Revenue',v:s4},
+    {n:5,l:'Purchase Intent',v:s5},
+  ].map(r=>`<div class="metric-row">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:18px;height:18px;border-radius:50%;background:var(--navy3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3);flex-shrink:0;">${r.n}</div>
+      <span style="font-size:12px;color:var(--text2);">${r.l}</span>
+    </div>
+    <span style="font-size:12px;font-weight:600;color:${r.v!=null&&r.v>0?'var(--lime)':'var(--text3)'};">${r.v!=null?(r.v>0?fmt$(r.v):'$0'):r.note}</span>
+  </div>`).join('');
+
+  const s1Imp=n(document.getElementById('s1-impressions').value);
+  const s1Eng=n(document.getElementById('s1-engagement').value);
+  const s1Card=document.getElementById('sb-s1-card');
+  if(att>0||s1Imp>0){
+    s1Card.style.display='block';
+    document.getElementById('sb-s1-rows').innerHTML=[
+      {l:'Event impressions',v:fmtN(s1Imp)},
+      {l:'Activation visitors',v:fmtN(att)},
+      {l:'Engaged (4+ min)',v:fmtN(s1Eng)},
+    ].map(m=>`<div class="metric-row"><span style="font-size:12px;color:var(--text2);">${m.l}</span><span style="font-size:12px;font-weight:600;color:var(--text);">${m.v}</span></div>`).join('');
+  }else{s1Card.style.display='none';}
+
+  const orgI=n(document.getElementById('s2-orgImp').value);
+  const s2Card=document.getElementById('sb-s2-card');
+  if(orgI>0){
+    s2Card.style.display='block';
+    document.getElementById('sb-s2-rows').innerHTML=[
+      {l:'Organic impressions',v:fmtK(orgI)},
+      {l:'Organic engagements',v:fmtK(n(document.getElementById('s2-orgEng').value))},
+      {l:'Influencer impressions',v:fmtK(n(document.getElementById('s2-infImp').value))},
+      {l:'Influencer engagements',v:fmtK(n(document.getElementById('s2-infEng').value))},
+    ].map(m=>`<div class="metric-row"><span style="font-size:12px;color:var(--text2);">${m.l}</span><span style="font-size:12px;font-weight:600;color:var(--text);">${m.v}</span></div>`).join('');
+  }else{s2Card.style.display='none';}
+}
+
+// ─── AI Recommendations ───────────────────────────────────────
+async function getRecommendations(){
+  const n=v=>parseFloat(v)||0;
+  const spend=n(document.getElementById('f-spend').value);
+  const s3Total=parseFloat(document.getElementById('s3-total')?.textContent?.replace(/[^0-9.]/g,'')||0);
+  const s4Total=n(document.getElementById('s4-direct').value)+n(document.getElementById('s4-online').value)+n(document.getElementById('s4-leads').value)+n(document.getElementById('s4-sponsor').value)+n(document.getElementById('s4-sampling').value);
+  const att=n(document.getElementById('s1-attendance').value);
+  const s5Total=att*(n(document.getElementById('s5-intent').value)/100)*(n(document.getElementById('s5-conv').value)/100)*n(document.getElementById('s5-acv').value);
+  const total=s3Total+s4Total+s5Total;
+  const ratio=spend>0?total/spend:0;
+
+  const card=document.getElementById('sb-ai-card');
+  const content=document.getElementById('sb-ai-content');
+  card.style.display='block';
+  content.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;color:var(--text2);font-size:13px;"><span style="animation:spin 1s linear infinite;display:inline-block;">◌</span> Analyzing your data…</div>`;
+
+  const eventData={
+    name: document.getElementById('f-name').value||'This event',
+    type: document.getElementById('f-type').value,
+    vertical: document.getElementById('s5-vertical').value,
+    spend: spend,
+    ratio: ratio.toFixed(2),
+    totalValue: total,
+    sections:{
+      activation:{ impressions:n(document.getElementById('s1-impressions').value), attendance:att, engagement:n(document.getElementById('s1-engagement').value) },
+      media:{ organicImpressions:n(document.getElementById('s2-orgImp').value), organicEngagements:n(document.getElementById('s2-orgEng').value), influencerImpressions:n(document.getElementById('s2-infImp').value), influencerEngagements:n(document.getElementById('s2-infEng').value) },
+      contentEMV: s3Total,
+      platforms: activePlatforms,
+      revenue:{ direct:n(document.getElementById('s4-direct').value), online:n(document.getElementById('s4-online').value), leads:n(document.getElementById('s4-leads').value), sponsor:n(document.getElementById('s4-sponsor').value), sampling:n(document.getElementById('s4-sampling').value) },
+      purchaseIntent:{ acv:n(document.getElementById('s5-acv').value), intent:n(document.getElementById('s5-intent').value), conv:n(document.getElementById('s5-conv').value), value:s5Total }
+    }
+  };
+
+  const prompt=`You are an experiential marketing ROI advisor for The Bait Shoppe, a leading XM agency.
+
+A brand has entered the following data for their activation:
+- Event: ${eventData.name} (${eventData.type})
+- Industry vertical: ${eventData.vertical}
+- Activation spend: $${eventData.spend.toLocaleString()}
+- Total estimated value generated: $${Math.round(eventData.totalValue).toLocaleString()}
+- Impact ratio: ${eventData.ratio}:1 (goal is 1:1 or better)
+
+Value breakdown:
+- Content EMV: $${Math.round(eventData.sections.contentEMV).toLocaleString()}
+- Net Revenue: $${Math.round(s4Total).toLocaleString()} (direct: $${eventData.sections.revenue.direct.toLocaleString()}, online: $${eventData.sections.revenue.online.toLocaleString()}, lead conversions: $${eventData.sections.revenue.leads.toLocaleString()}, sponsorship: $${eventData.sections.revenue.sponsor.toLocaleString()}, sampling: $${eventData.sections.revenue.sampling.toLocaleString()})
+- Purchase Intent Value: $${Math.round(eventData.sections.purchaseIntent.value).toLocaleString()} (ACV: $${eventData.sections.purchaseIntent.acv}, intent rate: ${eventData.sections.purchaseIntent.intent}%, conversion rate: ${eventData.sections.purchaseIntent.conv}%)
+
+Activation metrics:
+- Event impressions: ${eventData.sections.activation.impressions.toLocaleString()}
+- Activation visitors: ${eventData.sections.activation.attendance.toLocaleString()}
+- Engaged visitors (4+ min dwell): ${eventData.sections.activation.engagement.toLocaleString()}
+
+Media metrics:
+- Organic social impressions: ${eventData.sections.media.organicImpressions.toLocaleString()}
+- Organic engagements: ${eventData.sections.media.organicEngagements.toLocaleString()}
+- Influencer impressions: ${eventData.sections.media.influencerImpressions.toLocaleString()}
+- Influencer engagements: ${eventData.sections.media.influencerEngagements.toLocaleString()}
+- Platforms used: ${eventData.sections.platforms.join(', ')||'none entered'}
+
+Provide exactly 4 specific, actionable recommendations to improve their impact ratio. Each recommendation must:
+1. Reference their actual numbers (not generic advice)
+2. Suggest a specific lever to pull (e.g. increase influencer impressions by X%, reduce venue cost, add sampling conversions)
+3. Estimate the potential impact on their ratio if possible
+
+Format your response as JSON only — no preamble, no markdown. Use this exact structure:
+{
+  "summary": "One sentence overall assessment of their ratio and biggest opportunity",
+  "recommendations": [
+    { "title": "Short action title", "detail": "Specific advice referencing their numbers", "impact": "high|medium|low", "lever": "cost|revenue|media|content|attendance" },
+    { "title": "...", "detail": "...", "impact": "...", "lever": "..." },
+    { "title": "...", "detail": "...", "impact": "...", "lever": "..." },
+    { "title": "...", "detail": "...", "impact": "...", "lever": "..." }
+  ]
+}`;
+
+  try {
+    const response=await fetch('/api/recommend',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const clean=text.replace(/```json|```/g,'').trim();
+    const result=JSON.parse(clean);
+
+    const impactColors={high:'#D4FE08',medium:'#00F0FF',low:'#5A6EF8'};
+    const leverIcons={cost:'↓',revenue:'↑',media:'📡',content:'🎬',attendance:'👥'};
+    const leverLabels={cost:'Reduce cost',revenue:'Boost revenue',media:'Grow media',content:'More content',attendance:'Drive attendance'};
+
+    content.innerHTML=`
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px;padding:10px 12px;background:var(--navy3);border-radius:var(--radius);">
+        ${result.summary}
+      </div>
+      ${result.recommendations.map((r,i)=>`
+        <div style="margin-bottom:10px;padding:12px;background:var(--navy3);border-radius:var(--radius);border-left:3px solid ${impactColors[r.impact]||'#5A6EF8'};">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px;">
+            <span style="font-size:13px;font-weight:600;color:var(--white);line-height:1.3;">${r.title}</span>
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;background:${impactColors[r.impact]}22;color:${impactColors[r.impact]||'var(--text2)'};">${r.impact} impact</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">${r.detail}</div>
+          <div style="margin-top:8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">${leverLabels[r.lever]||r.lever}</div>
+        </div>
+      `).join('')}
+    `;
+  } catch(err){
+    content.innerHTML=`<div style="font-size:12px;color:#FF6B6B;padding:8px 0;">Could not load recommendations. Please try again.</div>`;
+  }
+}
+
+// ─── Compare ─────────────────────────────────────────────────
+function renderCompare(){
+  if(!selectedEvents.length)selectedEvents=events.map(e=>e.id);
+  document.getElementById('cmp-toggles').innerHTML=events.map((e,i)=>`<button class="cmp-toggle${selectedEvents.includes(e.id)?' active':''}" style="border-left:2px solid ${SERIES[i%SERIES.length]};" onclick="toggleCmpEvent('${e.id}')">${selectedEvents.includes(e.id)?'✓ ':''}${e.name.length>22?e.name.slice(0,22)+'…':e.name}</button>`).join('');
+
+  const chosen=events.filter(e=>selectedEvents.includes(e.id));
+  const rows=chosen.map(e=>({...e,c:calcEvent(e)}));
+  if(!rows.length)return;
+
+  document.getElementById('cmp-legend').innerHTML=rows.map((r,i)=>`<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:${SERIES[i%SERIES.length]};display:inline-block;"></span>${r.name}</span>`).join('');
+
+  if(cmpChart)cmpChart.destroy();
+  cmpChart=new Chart(document.getElementById('cmp-chart'),{
+    type:'bar',
+    data:{
+      labels:['Total Value','Net Revenue','Content EMV','Purchase Intent'],
+      datasets:rows.map((r,i)=>({
+        label:r.name,
+        data:[Math.round(r.c.total),Math.round(r.c.s4),Math.round(r.c.s3),Math.round(r.c.s5)],
+        backgroundColor:SERIES[i%SERIES.length],borderRadius:3
+      }))
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9BA3CC',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{callback:v=>'$'+fmtK(v),color:'#9BA3CC',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+
+  const METRICS=[
+    {l:'Total value',fn:r=>fmt$(r.c.total)},{l:'Net revenue',fn:r=>fmt$(r.c.s4)},
+    {l:'Content EMV',fn:r=>fmt$(r.c.s3)},{l:'Purchase intent est.',fn:r=>fmt$(r.c.s5)},
+    {l:'Event impressions',fn:r=>fmtN(r.s1.impressions)},{l:'Activation visitors',fn:r=>fmtN(r.s1.attendance)},
+    {l:'Engaged (4+ min)',fn:r=>fmtN(r.s1.engagement)},
+    {l:'Organic impressions',fn:r=>fmtK(r.s2.orgImp)},{l:'Influencer impressions',fn:r=>fmtK(r.s2.infImp)},
+    {l:'Direct sales',fn:r=>fmt$(r.s4.direct)},{l:'Lead conversions',fn:r=>fmt$(r.s4.leads)},
+    {l:'Industry vertical',fn:r=>r.s5.vertical},{l:'Annual consumer value',fn:r=>fmt$(r.s5.acv)},
+  ];
+  const tbl=document.getElementById('cmp-table');
+  tbl.querySelector('thead').innerHTML=`<tr><th>Metric</th>${rows.map((r,i)=>`<th class="right" style="color:${SERIES[i%SERIES.length]};">${r.name.length>18?r.name.slice(0,18)+'…':r.name}</th>`).join('')}</tr>`;
+  tbl.querySelector('tbody').innerHTML=METRICS.map(m=>`<tr><td style="color:var(--text2);">${m.l}</td>${rows.map(r=>`<td class="right" style="font-weight:600;color:var(--text);">${m.fn(r)}</td>`).join('')}</tr>`).join('');
+}
+
+function toggleCmpEvent(id){
+  selectedEvents=selectedEvents.includes(id)?selectedEvents.filter(x=>x!==id):[...selectedEvents,id];
+  renderCompare();
+}
+
+// ─── Report ──────────────────────────────────────────────────
+function openReport(id){
+  showView('report');
+  setTimeout(()=>{document.getElementById('report-select').value=id;renderReport();},50);
+}
+
+function renderReport(){
+  const sel=document.getElementById('report-select');
+  sel.innerHTML=events.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  const id=sel.value;
+  const e=events.find(ev=>ev.id===id);
+  if(!e){document.getElementById('report-body').innerHTML='';return;}
+  const c=calcEvent(e);
+  const att=e.s1.attendance||0;
+  const maxF=Math.max(e.s1.impressions,1);
+  const funnel=[
+    {l:'Event impressions',v:e.s1.impressions,c:C.cyan},
+    {l:'Activation visitors',v:e.s1.attendance,c:C.lime},
+    {l:'Engaged (4+ min)',v:e.s1.engagement,c:C.green},
+  ];
+  document.getElementById('report-body').innerHTML=`
+    <div style="border-bottom:2px solid var(--lime);padding-bottom:1.25rem;margin-bottom:1.5rem;">
+      <h2 style="font-family:var(--font-serif);font-size:22px;font-style:italic;color:var(--white);margin-bottom:10px;">${e.name}</h2>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+        ${e.date?`<span style="font-size:13px;color:var(--text2);">📅 ${e.date}</span>`:''}
+        ${e.location?`<span style="font-size:13px;color:var(--text2);">📍 ${e.location}</span>`:''}
+        <span class="tag ${tagClass(e.type)}">${e.type}</span>
+        <span style="font-size:13px;color:var(--text2);">${e.s5.vertical}</span>
+      </div>
+    </div>
+    <div class="grid-4" style="margin-bottom:1.5rem;">
+      ${[{l:'Total value',v:fmt$(c.total),c:C.lime},{l:'Net revenue',v:fmt$(c.s4),c:C.green},{l:'Content EMV',v:fmt$(c.s3),c:C.cyan},{l:'Purchase intent',v:fmt$(c.s5),c:C.periwinkle}].map(m=>`<div class="metric-box"><span class="metric-label">${m.l}</span><div style="font-size:20px;font-weight:700;color:${m.c};margin-top:4px;">${m.v}</div></div>`).join('')}
+    </div>
+    <div class="grid-2" style="gap:24px;margin-bottom:1.5rem;">
+      <div>
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:1rem;color:var(--white);">Activation funnel</h3>
+        ${funnel.map(step=>`<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:var(--text2);">${step.l}</span><span style="font-size:12px;font-weight:600;color:${step.c};">${fmtN(step.v||0)}</span></div><div class="funnel-bg"><div class="funnel-fill" style="background:${step.c};width:${Math.min(100,(step.v||0)/maxF*100)}%;"></div></div></div>`).join('')}
+      </div>
+      <div>
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:1rem;color:var(--white);">Purchase intent formula</h3>
+        <div style="background:var(--navy3);border-radius:var(--radius);padding:14px;border:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--text2);line-height:2;">${fmtN(att)} attendees × ${e.s5.intent}% intent × ${e.s5.conv}% conversion × ${fmt$(e.s5.acv)} ACV</div>
+          <hr class="divider"/>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:12px;color:var(--text2);">Purchase intent value</span>
+            <span style="font-size:13px;font-weight:700;color:var(--lime);">${fmt$(c.s5)}</span>
+          </div>
+        </div>
+        ${e.s3.platforms.length?`<h3 style="font-size:14px;font-weight:600;margin:1rem 0 .75rem;color:var(--white);">Content EMV by platform</h3>${e.s3.platforms.map(pid=>{const p=PLATFORMS.find(x=>x.id===pid);const d=e.s3.data[pid]||{};const emv=((d.impressions||0)/1000)*(d.cpm||p.cpm);return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--text2);">${p.label} (${fmtK(d.impressions||0)} imp)</span><span style="font-weight:600;color:var(--lime);">${fmt$(emv)}</span></div>`;}).join('')}`:''}
+      </div>
+    </div>
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Revenue detail</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      ${[['Direct sales at event',fmt$(e.s4.direct)],['Online sales attributed',fmt$(e.s4.online)],['Lead conversions',fmt$(e.s4.leads)],['Sponsorship revenue',fmt$(e.s4.sponsor)],['Sampling conversions',fmt$(e.s4.sampling)],['Total net revenue',fmt$(c.s4)]].map(([label,val],i)=>`<div style="padding:10px 14px;border-bottom:1px solid var(--border);${i%2===0?'border-right:1px solid var(--border);':''}background:${Math.floor(i/2)%2===1?'var(--navy3)':'transparent'};display:flex;justify-content:space-between;"><span style="font-size:12px;color:var(--text2);">${label}</span><span style="font-size:12px;font-weight:600;color:${i===5?'var(--lime)':'var(--text)'};">${val}</span></div>`).join('')}
+    </div>`;
+}
+
+// ─── Init ─────────────────────────────────────────────────────
+renderPlatformToggles({});
+renderDashboard();
+</script>
+</body>
+</html>
