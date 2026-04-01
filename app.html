@@ -232,6 +232,19 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 }
 .cmp-toggle.active{background:var(--navy3);color:var(--text);}
 
+/* ─── Metric toggles ─── */
+.metric-field{margin-bottom:0;}
+.metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.metric-header .lbl{margin-bottom:0;}
+.tog{position:relative;width:28px;height:16px;flex-shrink:0;cursor:pointer;}
+.tog input{opacity:0;width:0;height:0;position:absolute;}
+.tog-track{position:absolute;top:0;left:0;right:0;bottom:0;background:#242A4A;border:1px solid rgba(255,255,255,0.15);border-radius:16px;transition:.2s;}
+.tog-thumb{position:absolute;content:"";height:10px;width:10px;left:2px;top:2px;background:#5C6490;border-radius:50%;transition:.2s;pointer-events:none;}
+.tog input:checked~.tog-track{background:rgba(212,254,8,.15);border-color:rgba(212,254,8,.35);}
+.tog input:checked~.tog-thumb{transform:translateX(12px);background:#D4FE08;}
+.field-off input,.field-off select,.field-off .prefix-wrap input{opacity:.3;pointer-events:none;}
+.field-off .hint{opacity:.3;}
+
 /* ─── Lime accent line ─── */
 .lime-bar{height:3px;background:var(--lime);border-radius:2px;margin-bottom:1.5rem;}
 
@@ -366,18 +379,18 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
         </button>
         <div class="acc-body open" id="acc-body-1">
           <div class="grid-3">
-            <div>
-              <label class="lbl">Impressions</label>
+            <div id="field-s1-impressions">
+              <div class="metric-header"><label class="lbl">Impressions</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s1-impressions',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
               <div class="hint">Total people at the event</div>
               <input id="s1-impressions" type="number" placeholder="0" oninput="updateSidebar()"/>
             </div>
-            <div>
-              <label class="lbl">Attendance</label>
+            <div id="field-s1-attendance">
+              <div class="metric-header"><label class="lbl">Attendance</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s1-attendance',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
               <div class="hint">People who visited your activation</div>
               <input id="s1-attendance" type="number" placeholder="0" oninput="updateSidebar()"/>
             </div>
-            <div>
-              <label class="lbl">Engagement</label>
+            <div id="field-s1-engagement">
+              <div class="metric-header"><label class="lbl">Engagement</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s1-engagement',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
               <div class="hint">Visitors with 4+ min dwell time</div>
               <input id="s1-engagement" type="number" placeholder="0" oninput="updateSidebar()"/>
             </div>
@@ -398,10 +411,22 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
         </button>
         <div class="acc-body" id="acc-body-2">
           <div class="grid-2">
-            <div><label class="lbl">Organic social impressions</label><input id="s2-orgImp" type="number" placeholder="0" oninput="updateSidebar()"/></div>
-            <div><label class="lbl">Organic social engagements</label><input id="s2-orgEng" type="number" placeholder="0" oninput="updateSidebar()"/></div>
-            <div><label class="lbl">Influencer social impressions</label><input id="s2-infImp" type="number" placeholder="0" oninput="updateSidebar()"/></div>
-            <div><label class="lbl">Influencer social engagements</label><input id="s2-infEng" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            <div id="field-s2-orgImp">
+              <div class="metric-header"><label class="lbl">Organic social impressions</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s2-orgImp',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <input id="s2-orgImp" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
+            <div id="field-s2-orgEng">
+              <div class="metric-header"><label class="lbl">Organic social engagements</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s2-orgEng',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <input id="s2-orgEng" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
+            <div id="field-s2-infImp">
+              <div class="metric-header"><label class="lbl">Influencer social impressions</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s2-infImp',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <input id="s2-infImp" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
+            <div id="field-s2-infEng">
+              <div class="metric-header"><label class="lbl">Influencer social engagements</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s2-infEng',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <input id="s2-infEng" type="number" placeholder="0" oninput="updateSidebar()"/>
+            </div>
             <div style="grid-column:span 2;" class="info-banner">Social API integrations (Meta, TikTok, LinkedIn, X) coming in Phase 2 — enter data manually for now.</div>
           </div>
         </div>
@@ -444,11 +469,26 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
         </button>
         <div class="acc-body" id="acc-body-4">
           <div class="grid-2">
-            <div><label class="lbl">Direct sales at event</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-direct" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
-            <div><label class="lbl">Online sales attributed to event</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-online" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
-            <div><label class="lbl">Leads converted post-event</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-leads" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
-            <div><label class="lbl">Sponsorship / partnership revenue</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-sponsor" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
-            <div style="grid-column:span 2;"><label class="lbl">Product sampling / trial conversions</label><div class="prefix-wrap"><span class="pfx">$</span><input id="s4-sampling" type="number" placeholder="0" oninput="updateSidebar()"/></div></div>
+            <div id="field-s4-direct">
+              <div class="metric-header"><label class="lbl">Direct sales at event</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s4-direct',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <div class="prefix-wrap"><span class="pfx">$</span><input id="s4-direct" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            </div>
+            <div id="field-s4-online">
+              <div class="metric-header"><label class="lbl">Online sales attributed to event</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s4-online',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <div class="prefix-wrap"><span class="pfx">$</span><input id="s4-online" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            </div>
+            <div id="field-s4-leads">
+              <div class="metric-header"><label class="lbl">Leads converted post-event</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s4-leads',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <div class="prefix-wrap"><span class="pfx">$</span><input id="s4-leads" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            </div>
+            <div id="field-s4-sponsor">
+              <div class="metric-header"><label class="lbl">Sponsorship / partnership revenue</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s4-sponsor',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <div class="prefix-wrap"><span class="pfx">$</span><input id="s4-sponsor" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            </div>
+            <div id="field-s4-sampling" style="grid-column:span 2;">
+              <div class="metric-header"><label class="lbl">Product sampling / trial conversions</label><label class="tog"><input type="checkbox" checked onchange="toggleField('s4-sampling',this.checked)"/><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+              <div class="prefix-wrap"><span class="pfx">$</span><input id="s4-sampling" type="number" placeholder="0" oninput="updateSidebar()"/></div>
+            </div>
           </div>
           <div class="totals-row" style="margin-top:12px;">
             <span style="font-size:12px;color:var(--text2);">Total Net Revenue</span>
@@ -466,6 +506,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
           </div>
           <div style="display:flex;align-items:center;gap:12px;">
             <span id="acc-val-5" style="font-size:13px;font-weight:600;color:var(--lime);display:none;"></span>
+            <label class="tog" onclick="event.stopPropagation()" title="Include / ignore this section">
+              <input type="checkbox" checked onchange="toggleSection5(this.checked)"/>
+              <div class="tog-track"></div><div class="tog-thumb"></div>
+            </label>
             <span class="acc-arrow" id="acc-arrow-5">⌄</span>
           </div>
         </button>
@@ -692,6 +736,44 @@ async function deleteEventFromDb(id){
   if(error) console.error('delete error',error);
 }
 
+// ─── Field toggle system ──────────────────────────────────────
+const ignoredFields = new Set();
+
+function toggleField(id, active) {
+  const wrapper = document.getElementById('field-' + id);
+  if (!wrapper) return;
+  if (active) {
+    ignoredFields.delete(id);
+    wrapper.classList.remove('field-off');
+  } else {
+    ignoredFields.add(id);
+    wrapper.classList.add('field-off');
+  }
+  updateSidebar();
+}
+
+function fieldVal(id) {
+  if (ignoredFields.has(id)) return 0;
+  return parseFloat(document.getElementById(id)?.value) || 0;
+}
+
+let s5Ignored=false;
+function toggleSection5(active){
+  s5Ignored=!active;
+  const body=document.getElementById('acc-body-5');
+  if(body) body.style.opacity=active?'1':'0.4';
+  updateSidebar();
+}
+
+const ignoredPlatforms=new Set();
+function togglePlatformField(pid,active){
+  if(active){ ignoredPlatforms.delete(pid); }
+  else { ignoredPlatforms.add(pid); }
+  const inputs=document.getElementById('plat-inputs-'+pid);
+  if(inputs) inputs.style.opacity=active?'1':'0.3';
+  updateSidebar();
+}
+
 // ─── Formatters ───────────────────────────────────────────────
 const fmt$=n=>"$"+Math.round(Math.abs(n)).toLocaleString("en-US");
 const fmtN=n=>Math.round(n).toLocaleString("en-US");
@@ -850,9 +932,15 @@ function renderPlatformInputs(existingData){
     return `<div id="plat-${pid}" style="margin-bottom:10px;padding:12px;background:var(--navy3);border-radius:var(--radius);border:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <span style="font-size:13px;font-weight:600;color:var(--white);">${p.label}</span>
-        <span id="emv-${pid}" style="font-size:12px;font-weight:600;color:var(--lime);"></span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="emv-${pid}" style="font-size:12px;font-weight:600;color:var(--lime);"></span>
+          <label class="tog" title="Include / ignore this platform">
+            <input type="checkbox" checked onchange="togglePlatformField('${pid}',this.checked)"/>
+            <div class="tog-track"></div><div class="tog-thumb"></div>
+          </label>
+        </div>
       </div>
-      <div class="grid-3">
+      <div class="grid-3" id="plat-inputs-${pid}">
         <div><label class="lbl">Pieces published</label><input id="pp-${pid}" type="number" value="${d.pieces}" placeholder="0" oninput="updateSidebar()"/></div>
         <div><label class="lbl">Total impressions</label><input id="pi-${pid}" type="number" value="${d.impressions}" placeholder="0" oninput="updateSidebar()"/></div>
         <div><label class="lbl">CPM ($)</label><div class="hint">Default: $${p.cpm}</div><input id="pc-${pid}" type="number" value="${d.cpm}" placeholder="${p.cpm}" oninput="updateSidebar()"/></div>
@@ -908,11 +996,12 @@ function setVertical(){
 
 function updateSidebar(){
   const n=v=>parseFloat(v)||0;
-  const att=n(document.getElementById('s1-attendance').value);
+  const att=fieldVal('s1-attendance');
   document.getElementById('s5-attendance').value=att;
 
   let s3=0;
   activePlatforms.forEach(pid=>{
+    if(ignoredPlatforms.has(pid)) return;
     const imp=n(document.getElementById('pi-'+pid)?.value);
     const cpm=n(document.getElementById('pc-'+pid)?.value)||PLATFORMS.find(p=>p.id===pid).cpm;
     const emv=(imp/1000)*cpm;
@@ -923,13 +1012,13 @@ function updateSidebar(){
   const s3el=document.getElementById('s3-total');
   if(s3el)s3el.textContent=fmt$(s3);
 
-  const s4=n(document.getElementById('s4-direct').value)+n(document.getElementById('s4-online').value)+n(document.getElementById('s4-leads').value)+n(document.getElementById('s4-sponsor').value)+n(document.getElementById('s4-sampling').value);
+  const s4=fieldVal('s4-direct')+fieldVal('s4-online')+fieldVal('s4-leads')+fieldVal('s4-sponsor')+fieldVal('s4-sampling');
   document.getElementById('s4-total').textContent=fmt$(s4);
 
   const acv=n(document.getElementById('s5-acv').value);
   const intent=n(document.getElementById('s5-intent').value);
   const conv=n(document.getElementById('s5-conv').value);
-  const s5=att*(intent/100)*(conv/100)*acv;
+  const s5=s5Ignored?0:att*(intent/100)*(conv/100)*acv;
   document.getElementById('s5-total').textContent=fmt$(s5);
   document.getElementById('s5-formula').textContent=`${fmtN(att)} attendees × ${intent}% intent × ${conv}% conversion × ${fmt$(acv)} ACV`;
 
@@ -1035,15 +1124,23 @@ async function getRecommendations(){
     spend: spend,
     ratio: ratio.toFixed(2),
     totalValue: total,
+    ignoredMetrics: Array.from(ignoredFields),
     sections:{
-      activation:{ impressions:n(document.getElementById('s1-impressions').value), attendance:att, engagement:n(document.getElementById('s1-engagement').value) },
-      media:{ organicImpressions:n(document.getElementById('s2-orgImp').value), organicEngagements:n(document.getElementById('s2-orgEng').value), influencerImpressions:n(document.getElementById('s2-infImp').value), influencerEngagements:n(document.getElementById('s2-infEng').value) },
+      activation:{ impressions:fieldVal('s1-impressions'), attendance:att, engagement:fieldVal('s1-engagement') },
+      media:{ organicImpressions:fieldVal('s2-orgImp'), organicEngagements:fieldVal('s2-orgEng'), influencerImpressions:fieldVal('s2-infImp'), influencerEngagements:fieldVal('s2-infEng') },
       contentEMV: s3Total,
       platforms: activePlatforms,
-      revenue:{ direct:n(document.getElementById('s4-direct').value), online:n(document.getElementById('s4-online').value), leads:n(document.getElementById('s4-leads').value), sponsor:n(document.getElementById('s4-sponsor').value), sampling:n(document.getElementById('s4-sampling').value) },
+      revenue:{ direct:fieldVal('s4-direct'), online:fieldVal('s4-online'), leads:fieldVal('s4-leads'), sponsor:fieldVal('s4-sponsor'), sampling:fieldVal('s4-sampling') },
       purchaseIntent:{ acv:n(document.getElementById('s5-acv').value), intent:n(document.getElementById('s5-intent').value), conv:n(document.getElementById('s5-conv').value), value:s5Total }
     }
   };
+
+  const allIgnored=[
+    ...Array.from(ignoredFields),
+    ...(s5Ignored?['purchase intent section']:[]),
+    ...Array.from(ignoredPlatforms).map(p=>`${p} content EMV`)
+  ];
+  const ignoredNote=allIgnored.length>0?`\nNote: The following metrics have been marked as NOT relevant to this event's goals and must be excluded from recommendations: ${allIgnored.join(', ')}`:'';
 
   const prompt=`You are an experiential marketing ROI advisor for The Bait Shoppe, a leading XM agency.
 
@@ -1053,6 +1150,7 @@ A brand has entered the following data for their activation:
 - Activation spend: $${eventData.spend.toLocaleString()}
 - Total estimated value generated: $${Math.round(eventData.totalValue).toLocaleString()}
 - Impact ratio: ${eventData.ratio}:1 (goal is 1:1 or better)
+${ignoredNote}
 
 Value breakdown:
 - Content EMV: $${Math.round(eventData.sections.contentEMV).toLocaleString()}
