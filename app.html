@@ -625,10 +625,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 <div class="page" id="view-clients">
   <div class="page-title">Client Management</div>
   <div class="page-sub">Invite and manage client accounts</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:16px;">
     <div class="card">
       <div class="section-label">Invite a new client</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Enter the client's email address to generate a unique invite link. Send them the link and they'll be able to create their own account.</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Enter the client's email to generate a unique invite link.</div>
       <label class="lbl">Client email address</label>
       <input id="invite-email" type="email" placeholder="client@company.com" style="margin-bottom:12px;"/>
       <button class="btn btn-primary" style="width:100%;" onclick="generateInvite()">Generate invite link</button>
@@ -644,18 +644,37 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
       <div id="clients-list"><div style="font-size:13px;color:var(--text3);padding:8px 0;">Loading clients...</div></div>
     </div>
   </div>
+  <!-- View client events -->
+  <div class="card" id="admin-client-view" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div class="section-label" style="margin-bottom:0;">Viewing client events</div>
+      <select id="admin-client-select" style="width:auto;min-width:200px;" onchange="loadClientEvents()"></select>
+    </div>
+    <div id="admin-client-kpis" class="grid-4" style="margin-bottom:1rem;"></div>
+    <div id="admin-client-cards" class="event-grid"></div>
+  </div>
 </div>
 <div class="page" id="view-compare">
   <div class="page-title">Event Comparison</div>
   <div class="page-sub">Side-by-side analysis of your campaigns</div>
   <div id="cmp-toggles" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;"></div>
+
+  <!-- Ratio comparison chart -->
   <div class="card" style="margin-bottom:12px;">
-    <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Value comparison</h3>
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Impact ratio comparison</h3>
+    <div id="cmp-ratio-bars"></div>
+  </div>
+
+  <!-- Value breakdown chart -->
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Value breakdown</h3>
     <div id="cmp-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--text2);"></div>
     <div class="chart-wrap" style="height:200px;"><canvas id="cmp-chart"></canvas></div>
   </div>
-  <div class="card" style="padding:0;overflow:hidden;">
-    <table id="cmp-table"><thead></thead><tbody></tbody></table>
+
+  <!-- Metrics table — horizontal scroll on mobile -->
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table id="cmp-table" style="min-width:500px;"><thead></thead><tbody></tbody></table>
   </div>
 </div>
 
@@ -1171,17 +1190,17 @@ Media metrics:
 
 Provide exactly 4 specific, actionable recommendations to improve their impact ratio. Each recommendation must:
 1. Reference their actual numbers (not generic advice)
-2. Suggest a specific lever to pull (e.g. increase influencer impressions by X%, reduce venue cost, add sampling conversions)
-3. Estimate the potential impact on their ratio if possible
+2. Suggest a specific lever to pull
+3. Include a realistic estimated dollar value impact on their total value
 
 Format your response as JSON only — no preamble, no markdown. Use this exact structure:
 {
   "summary": "One sentence overall assessment of their ratio and biggest opportunity",
   "recommendations": [
-    { "title": "Short action title", "detail": "Specific advice referencing their numbers", "impact": "high|medium|low", "lever": "cost|revenue|media|content|attendance" },
-    { "title": "...", "detail": "...", "impact": "...", "lever": "..." },
-    { "title": "...", "detail": "...", "impact": "...", "lever": "..." },
-    { "title": "...", "detail": "...", "impact": "...", "lever": "..." }
+    { "title": "Short action title", "detail": "Specific advice referencing their numbers", "impact": "high|medium|low", "lever": "cost|revenue|media|content|attendance", "dollarImpact": "$X,XXX estimated value uplift" },
+    { "title": "...", "detail": "...", "impact": "...", "lever": "...", "dollarImpact": "..." },
+    { "title": "...", "detail": "...", "impact": "...", "lever": "...", "dollarImpact": "..." },
+    { "title": "...", "detail": "...", "impact": "...", "lever": "...", "dollarImpact": "..." }
   ]
 }`;
 
@@ -1214,8 +1233,11 @@ Format your response as JSON only — no preamble, no markdown. Use this exact s
             <span style="font-size:13px;font-weight:600;color:var(--white);line-height:1.3;">${r.title}</span>
             <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;background:${impactColors[r.impact]}22;color:${impactColors[r.impact]||'var(--text2)'};">${r.impact} impact</span>
           </div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.6;">${r.detail}</div>
-          <div style="margin-top:8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">${leverLabels[r.lever]||r.lever}</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px;">${r.detail}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">${leverLabels[r.lever]||r.lever}</div>
+            ${r.dollarImpact?`<div style="font-size:12px;font-weight:600;color:var(--lime);">${r.dollarImpact}</div>`:''}
+          </div>
         </div>
       `).join('')}
     `;
@@ -1232,6 +1254,28 @@ function renderCompare(){
   const chosen=events.filter(e=>selectedEvents.includes(e.id));
   const rows=chosen.map(e=>({...e,c:calcEvent(e)}));
   if(!rows.length)return;
+
+  // Ratio comparison bars
+  const maxRatio=Math.max(2,...rows.map(r=>r.spend>0?r.c.total/r.spend:0));
+  document.getElementById('cmp-ratio-bars').innerHTML=rows.map((r,i)=>{
+    const ratio=r.spend>0?r.c.total/r.spend:0;
+    const color=ratio>=1.5?C.lime:ratio>=1?C.green:C.red;
+    const pct=Math.min(100,ratio/Math.max(maxRatio,2)*100);
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:10px;height:10px;border-radius:2px;background:${SERIES[i%SERIES.length]};display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:13px;color:var(--text);">${r.name.length>30?r.name.slice(0,30)+'…':r.name}</span>
+        </div>
+        <span style="font-size:14px;font-weight:700;color:${color};">${ratio>0?ratio.toFixed(2)+':1':'No spend entered'}</span>
+      </div>
+      <div style="background:var(--navy3);border-radius:4px;height:10px;overflow:hidden;position:relative;">
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(212,254,8,.3);"></div>
+        <div style="background:${color};height:100%;width:${pct}%;border-radius:4px;transition:width .6s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;"><span>0</span><span style="color:rgba(212,254,8,.5);">1:1</span><span>2:1+</span></div>
+    </div>`;
+  }).join('');
 
   document.getElementById('cmp-legend').innerHTML=rows.map((r,i)=>`<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:${SERIES[i%SERIES.length]};display:inline-block;"></span>${r.name}</span>`).join('');
 
@@ -1257,17 +1301,25 @@ function renderCompare(){
   });
 
   const METRICS=[
-    {l:'Total value',fn:r=>fmt$(r.c.total)},{l:'Net revenue',fn:r=>fmt$(r.c.s4)},
-    {l:'Content EMV',fn:r=>fmt$(r.c.s3)},{l:'Purchase intent est.',fn:r=>fmt$(r.c.s5)},
-    {l:'Event impressions',fn:r=>fmtN(r.s1.impressions)},{l:'Activation visitors',fn:r=>fmtN(r.s1.attendance)},
+    {l:'Total value',fn:r=>fmt$(r.c.total),c:()=>C.lime},
+    {l:'Impact ratio',fn:r=>r.spend>0?(r.c.total/r.spend).toFixed(2)+':1':'—',c:r=>r.spend>0?(r.c.total/r.spend>=1?C.green:C.red):'var(--text3)'},
+    {l:'Activation spend',fn:r=>r.spend?fmt$(r.spend):'—'},
+    {l:'Net revenue',fn:r=>fmt$(r.c.s4),c:()=>C.green},
+    {l:'Content EMV',fn:r=>fmt$(r.c.s3),c:()=>C.cyan},
+    {l:'Purchase intent est.',fn:r=>fmt$(r.c.s5),c:()=>C.periwinkle},
+    {l:'Event impressions',fn:r=>fmtN(r.s1.impressions)},
+    {l:'Activation visitors',fn:r=>fmtN(r.s1.attendance)},
     {l:'Engaged (4+ min)',fn:r=>fmtN(r.s1.engagement)},
-    {l:'Organic impressions',fn:r=>fmtK(r.s2.orgImp)},{l:'Influencer impressions',fn:r=>fmtK(r.s2.infImp)},
-    {l:'Direct sales',fn:r=>fmt$(r.s4.direct)},{l:'Lead conversions',fn:r=>fmt$(r.s4.leads)},
-    {l:'Industry vertical',fn:r=>r.s5.vertical},{l:'Annual consumer value',fn:r=>fmt$(r.s5.acv)},
+    {l:'Organic impressions',fn:r=>fmtK(r.s2.orgImp)},
+    {l:'Influencer impressions',fn:r=>fmtK(r.s2.infImp)},
+    {l:'Direct sales',fn:r=>fmt$(r.s4.direct)},
+    {l:'Lead conversions',fn:r=>fmt$(r.s4.leads)},
+    {l:'Industry vertical',fn:r=>r.s5.vertical},
+    {l:'Annual consumer value',fn:r=>fmt$(r.s5.acv)},
   ];
   const tbl=document.getElementById('cmp-table');
-  tbl.querySelector('thead').innerHTML=`<tr><th>Metric</th>${rows.map((r,i)=>`<th class="right" style="color:${SERIES[i%SERIES.length]};">${r.name.length>18?r.name.slice(0,18)+'…':r.name}</th>`).join('')}</tr>`;
-  tbl.querySelector('tbody').innerHTML=METRICS.map(m=>`<tr><td style="color:var(--text2);">${m.l}</td>${rows.map(r=>`<td class="right" style="font-weight:600;color:var(--text);">${m.fn(r)}</td>`).join('')}</tr>`).join('');
+  tbl.querySelector('thead').innerHTML=`<tr><th style="min-width:160px;">Metric</th>${rows.map((r,i)=>`<th class="right" style="color:${SERIES[i%SERIES.length]};min-width:140px;">${r.name.length>18?r.name.slice(0,18)+'…':r.name}</th>`).join('')}</tr>`;
+  tbl.querySelector('tbody').innerHTML=METRICS.map((m,idx)=>`<tr style="background:${idx%2===1?'rgba(255,255,255,.02)':'transparent'}"><td style="color:var(--text2);font-weight:500;">${m.l}</td>${rows.map(r=>`<td class="right" style="font-weight:600;color:${m.c?m.c(r):'var(--text)'};">${m.fn(r)}</td>`).join('')}</tr>`).join('');
 }
 
 function toggleCmpEvent(id){
@@ -1290,14 +1342,20 @@ function renderReport(){
   const c=calcEvent(e);
   const att=e.s1.attendance||0;
   const maxF=Math.max(e.s1.impressions,1);
+  const ratio=e.spend>0?c.total/e.spend:0;
+  const ratioColor=ratio>=1.5?C.lime:ratio>=1?C.green:C.red;
   const funnel=[
     {l:'Event impressions',v:e.s1.impressions,c:C.cyan},
     {l:'Activation visitors',v:e.s1.attendance,c:C.lime},
     {l:'Engaged (4+ min)',v:e.s1.engagement,c:C.green},
   ];
   document.getElementById('report-body').innerHTML=`
-    <div style="border-bottom:2px solid var(--lime);padding-bottom:1.25rem;margin-bottom:1.5rem;">
-      <h2 style="font-family:var(--font-serif);font-size:22px;font-style:italic;color:var(--white);margin-bottom:10px;">${e.name}</h2>
+    <div style="background:var(--navy3);margin:-1.25rem -1.25rem 1.5rem;padding:2rem 1.5rem 1.5rem;border-radius:var(--radiusL) var(--radiusL) 0 0;border-bottom:2px solid var(--lime);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;opacity:.6;">
+        <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><circle cx="27" cy="9" r="2.5" stroke="#D4FE08" stroke-width="1.8" fill="none"/><line x1="27" y1="11.5" x2="27" y2="20" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/><path d="M27 20 Q27 30 18 30 Q11 30 11 23" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M11 23 Q11 17 16 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M13 19 L10 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span style="font-family:'IBM Plex Serif',serif;font-size:12px;color:var(--text2);font-style:italic;">The Bait Shoppe · XM Impact Report</span>
+      </div>
+      <h2 style="font-family:'IBM Plex Serif',serif;font-size:24px;font-style:italic;color:var(--white);margin-bottom:10px;line-height:1.3;">${e.name}</h2>
       <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
         ${e.date?`<span style="font-size:13px;color:var(--text2);">📅 ${e.date}</span>`:''}
         ${e.location?`<span style="font-size:13px;color:var(--text2);">📍 ${e.location}</span>`:''}
@@ -1305,25 +1363,39 @@ function renderReport(){
         <span style="font-size:13px;color:var(--text2);">${e.s5.vertical}</span>
       </div>
     </div>
+    ${e.spend?`<div style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;padding:16px;background:var(--navy3);border-radius:var(--radiusL);margin-bottom:1.5rem;border:1px solid rgba(212,254,8,.15);">
+      <div style="text-align:center;padding-right:20px;border-right:1px solid var(--border);">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:4px;">Impact ratio</div>
+        <div style="font-size:48px;font-weight:700;color:${ratioColor};line-height:1;">${ratio.toFixed(2)}</div>
+        <div style="font-size:13px;color:var(--text2);">: 1</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:var(--text2);">Total value</span><span style="font-size:13px;font-weight:600;color:var(--lime);">${fmt$(c.total)}</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;"><span style="font-size:13px;color:var(--text2);">Activation spend</span><span style="font-size:13px;font-weight:600;color:var(--text);">${fmt$(e.spend)}</span></div>
+        <div style="background:var(--navy2);border-radius:4px;height:8px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(212,254,8,.3);"></div>
+          <div style="background:${ratioColor};height:100%;width:${Math.min(100,ratio/2*100)}%;border-radius:4px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;"><span>0</span><span style="color:rgba(212,254,8,.5);">1:1 target</span><span>2:1+</span></div>
+      </div>
+    </div>`:''}
     <div class="grid-4" style="margin-bottom:1.5rem;">
       ${[{l:'Total value',v:fmt$(c.total),c:C.lime},{l:'Net revenue',v:fmt$(c.s4),c:C.green},{l:'Content EMV',v:fmt$(c.s3),c:C.cyan},{l:'Purchase intent',v:fmt$(c.s5),c:C.periwinkle}].map(m=>`<div class="metric-box"><span class="metric-label">${m.l}</span><div style="font-size:20px;font-weight:700;color:${m.c};margin-top:4px;">${m.v}</div></div>`).join('')}
     </div>
     <div class="grid-2" style="gap:24px;margin-bottom:1.5rem;">
       <div>
         <h3 style="font-size:14px;font-weight:600;margin-bottom:1rem;color:var(--white);">Activation funnel</h3>
-        ${funnel.map(step=>`<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:var(--text2);">${step.l}</span><span style="font-size:12px;font-weight:600;color:${step.c};">${fmtN(step.v||0)}</span></div><div class="funnel-bg"><div class="funnel-fill" style="background:${step.c};width:${Math.min(100,(step.v||0)/maxF*100)}%;"></div></div></div>`).join('')}
+        ${funnel.map(step=>`<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:var(--text2);">${step.l}</span><span style="font-size:12px;font-weight:600;color:${step.c};">${fmtN(step.v||0)}</span></div><div style="background:var(--navy3);border-radius:3px;height:6px;"><div style="background:${step.c};height:100%;width:${Math.min(100,(step.v||0)/maxF*100)}%;border-radius:3px;"></div></div></div>`).join('')}
       </div>
       <div>
         <h3 style="font-size:14px;font-weight:600;margin-bottom:1rem;color:var(--white);">Purchase intent formula</h3>
         <div style="background:var(--navy3);border-radius:var(--radius);padding:14px;border:1px solid var(--border);">
-          <div style="font-size:12px;color:var(--text2);line-height:2;">${fmtN(att)} attendees × ${e.s5.intent}% intent × ${e.s5.conv}% conversion × ${fmt$(e.s5.acv)} ACV</div>
-          <hr class="divider"/>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:12px;color:var(--text2);">Purchase intent value</span>
-            <span style="font-size:13px;font-weight:700;color:var(--lime);">${fmt$(c.s5)}</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            ${[{l:'Attendance',v:fmtN(att)},{l:'Purchase intent',v:e.s5.intent+'%'},{l:'Conversion rate',v:e.s5.conv+'%'},{l:'Annual value',v:fmt$(e.s5.acv)}].map(m=>`<div style="background:var(--navy2);border-radius:6px;padding:8px 10px;"><div style="font-size:10px;color:var(--text3);margin-bottom:2px;">${m.l}</div><div style="font-size:13px;font-weight:600;color:var(--text);">${m.v}</div></div>`).join('')}
           </div>
+          <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);"><span style="font-size:12px;color:var(--text2);">Purchase intent value</span><span style="font-size:13px;font-weight:700;color:var(--lime);">${fmt$(c.s5)}</span></div>
         </div>
-        ${e.s3.platforms.length?`<h3 style="font-size:14px;font-weight:600;margin:1rem 0 .75rem;color:var(--white);">Content EMV by platform</h3>${e.s3.platforms.map(pid=>{const p=PLATFORMS.find(x=>x.id===pid);const d=e.s3.data[pid]||{};const emv=((d.impressions||0)/1000)*(d.cpm||p.cpm);return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--text2);">${p.label} (${fmtK(d.impressions||0)} imp)</span><span style="font-weight:600;color:var(--lime);">${fmt$(emv)}</span></div>`;}).join('')}`:''}
+        ${e.s3.platforms&&e.s3.platforms.length?`<h3 style="font-size:14px;font-weight:600;margin:1rem 0 .75rem;color:var(--white);">Content EMV by platform</h3>${e.s3.platforms.map(pid=>{const p=PLATFORMS.find(x=>x.id===pid);const d=e.s3.data[pid]||{};const emv=((d.impressions||0)/1000)*(d.cpm||p.cpm);return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--text2);">${p.label} · ${fmtK(d.impressions||0)} impressions</span><span style="font-weight:600;color:var(--lime);">${fmt$(emv)}</span></div>`;}).join('')}`:''}
       </div>
     </div>
     <h3 style="font-size:14px;font-weight:600;margin-bottom:.75rem;color:var(--white);">Revenue detail</h3>
@@ -1414,16 +1486,75 @@ async function loadClients(){
   if(!list)return;
   if(error||!data||!data.length){
     list.innerHTML='<div style="font-size:13px;color:var(--text3);padding:8px 0;">No clients yet — invite your first client above.</div>';
+    document.getElementById('admin-client-view').style.display='none';
     return;
   }
-  list.innerHTML=data.map(c=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+
+  list.innerHTML=data.map(c=>{
+    const active=c.status!=='inactive';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
       <div>
-        <div style="font-size:13px;font-weight:500;color:var(--white);">${c.company_name||'—'}</div>
+        <div style="font-size:13px;font-weight:500;color:${active?'var(--white)':'var(--text3)'};">${c.company_name||'—'}</div>
         <div style="font-size:12px;color:var(--text3);">${c.email}</div>
       </div>
-      <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(212,254,8,.1);color:var(--lime);">Active</span>
-    </div>`).join('');
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${active?'rgba(212,254,8,.1)':'rgba(255,107,107,.1)'};color:${active?'var(--lime)':'#FF6B6B'};">${active?'Active':'Inactive'}</span>
+        <button onclick="toggleClientStatus('${c.id}','${active?'inactive':'active'}')" style="font-size:11px;padding:3px 8px;border-radius:4px;background:transparent;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:inherit;">${active?'Deactivate':'Reactivate'}</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Populate admin client selector
+  const sel=document.getElementById('admin-client-select');
+  sel.innerHTML=data.map(c=>`<option value="${c.id}">${c.company_name||c.email}</option>`).join('');
+  document.getElementById('admin-client-view').style.display='block';
+  loadClientEvents();
+}
+
+async function toggleClientStatus(userId, newStatus){
+  await _sb.from('profiles').update({status:newStatus}).eq('id',userId);
+  loadClients();
+}
+
+async function loadClientEvents(){
+  const sel=document.getElementById('admin-client-select');
+  const userId=sel.value;
+  if(!userId)return;
+  const {data,error}=await _sb.from('events').select('*').eq('user_id',userId).order('created_at',{ascending:false});
+  const clientEvents=(data||[]).map(row=>({
+    id:row.id,name:row.name,type:row.type||'Live Event / Activation',
+    date:row.date||'',location:row.location||'',spend:row.spend||0,
+    s1:row.s1||{},s2:row.s2||{},s3:row.s3||{platforms:[],data:{}},
+    s4:row.s4||{},s5:row.s5||{vertical:'Other',acv:500,intent:10,conv:25},
+  }));
+
+  const calcs=clientEvents.map(e=>({...e,c:calcEvent(e)}));
+  const tv=calcs.reduce((a,e)=>a+e.c.total,0);
+  const tr=calcs.reduce((a,e)=>a+e.c.s4,0);
+  const te=calcs.reduce((a,e)=>a+e.c.s3,0);
+  const tp=calcs.reduce((a,e)=>a+e.c.s5,0);
+
+  document.getElementById('admin-client-kpis').innerHTML=[
+    {l:'Total value',v:fmt$(tv),c:C.lime},
+    {l:'Net revenue',v:fmt$(tr),c:C.green},
+    {l:'Content EMV',v:fmt$(te),c:C.cyan},
+    {l:'Purchase intent',v:fmt$(tp),c:C.periwinkle},
+  ].map(k=>`<div class="metric-box"><span class="metric-label">${k.l}</span><div style="font-size:18px;font-weight:700;color:${k.c};margin:4px 0 2px;">${k.v}</div></div>`).join('');
+
+  document.getElementById('admin-client-cards').innerHTML=calcs.length?calcs.map(e=>`
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <span class="tag ${tagClass(e.type)}">${e.type}</span>
+        ${e.date?`<span style="font-size:11px;color:var(--text3);">${e.date}</span>`:''}
+      </div>
+      <div class="grid-2" style="gap:8px;">
+        <div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Total value</div><div style="font-size:13px;font-weight:600;color:${C.lime};">${fmt$(e.c.total)}</div></div>
+        ${e.spend?`<div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Impact ratio</div><div style="font-size:13px;font-weight:600;color:${e.c.total/e.spend>=1?C.green:C.red};">${(e.c.total/e.spend).toFixed(2)}:1</div></div>`:
+        `<div class="metric-box"><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Net revenue</div><div style="font-size:13px;font-weight:600;color:${C.green};">${fmt$(e.c.s4)}</div></div>`}
+      </div>
+    </div>`).join('')
+    :'<div style="font-size:13px;color:var(--text3);padding:16px 0;">This client has no events yet.</div>';
 }
 </script>
 </body>
