@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XM Impact Calculator — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:#0E1128;color:#E8EAFF;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.wrap{width:100%;max-width:400px;padding:24px;}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:40px;justify-content:center;}
+.logo-text{font-family:'IBM Plex Serif',serif;font-size:18px;color:#fff;font-style:italic;}
+.logo-sub{font-size:11px;color:#5C6490;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.card{background:#1A1F3B;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:32px;}
+h1{font-size:22px;font-weight:600;margin-bottom:6px;color:#fff;}
+.sub{font-size:13px;color:#9BA3CC;margin-bottom:28px;}
+label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#5C6490;display:block;margin-bottom:5px;}
+input{width:100%;background:#242A4A;border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#E8EAFF;font-size:14px;padding:10px 12px;outline:none;font-family:inherit;margin-bottom:16px;}
+input:focus{border-color:#D4FE08;}
+.btn{width:100%;padding:11px;background:#D4FE08;border:none;border-radius:8px;font-size:14px;font-weight:600;color:#0a0f00;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn:hover{background:#bfe000;}
+.btn:disabled{opacity:.5;cursor:default;}
+.err{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.25);border-radius:8px;padding:10px 12px;font-size:13px;color:#FF6B6B;margin-bottom:16px;display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+      <circle cx="27" cy="9" r="2.5" stroke="#D4FE08" stroke-width="1.8" fill="none"/>
+      <line x1="27" y1="11.5" x2="27" y2="20" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M27 20 Q27 30 18 30 Q11 30 11 23" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M11 23 Q11 17 16 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M13 19 L10 16" stroke="#D4FE08" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="logo-text">The Bait Shoppe</div>
+      <div class="logo-sub">XM Impact Calculator</div>
+    </div>
+  </div>
+  <div class="card">
+    <h1>Welcome back</h1>
+    <div class="sub">Sign in to access your dashboard</div>
+    <div class="err" id="err"></div>
+    <label>Email</label>
+    <input id="email" type="email" placeholder="you@example.com"/>
+    <label>Password</label>
+    <input id="password" type="password" placeholder="••••••••"/>
+    <button class="btn" id="loginBtn" onclick="login()">Sign in</button>
+  </div>
+</div>
+<script>
+const SUPABASE_URL = 'https://ganptzcehustvhunthht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbnB0emNlaHVzdHZodW50aGh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzU0NTQsImV4cCI6MjA5MDU1MTQ1NH0.DqEj2uyeYt4UwcCQU_Hoqo9VKrWIvqswfAPxndJy9xA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function login(){
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('err');
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Signing in...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ err.textContent=error.message; err.style.display='block'; btn.disabled=false; btn.textContent='Sign in'; return; }
+  window.location.href = '/app.html';
+}
+document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+sb.auth.getSession().then(({ data }) => { if(data.session) window.location.href = '/app.html'; });
+</script>
+</body>
+</html>
